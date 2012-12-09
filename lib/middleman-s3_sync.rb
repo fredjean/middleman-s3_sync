@@ -1,8 +1,9 @@
-require "middleman-core"
-require "fog"
+require 'middleman-core'
+require 'fog'
+require 'parallel'
 require 'digest/md5'
-require "middleman-s3_sync/version"
-require "middleman-s3_sync/commands"
+require 'middleman-s3_sync/version'
+require 'middleman-s3_sync/commands'
 
 ::Middleman::Extensions.register(:s3_sync, '>= 3.0.0') do
   require 'middleman-s3_sync/extension'
@@ -31,36 +32,43 @@ module Middleman
 
         # No need to evaluate the files that are newer on S3 than the local files.
         puts "Determine which local files are newer than it's counterpart on S3"
-        files_to_evaluate.reject! do |f|
+        files_to_reject = []
+        Parallel.each(files_to_evaluate, :in_threads => 4) do |f|
           print '.'
           local_mtime = File.mtime("build/#{f}")
           remote_mtime = s3_files.get(f).last_modified
-          remote_mtime >= local_mtime
+          files_to_reject << f if remote_mtime < local_mtime
         end
+
+        files_to_evaluate = files_to_evaluate - files_to_reject
 
         # Are the files different? Use MD5 to see
-        puts "\n\nDetermine which remaining files are actually different than their S3 counterpart."
-        files_to_evaluate.each do |f|
-          print '.'
-          local_md5 = Digest::MD5.hexdigest(File.read("build/#{f}"))
-          remote_md5 = s3_files.get(f).etag
-          files_to_push << f if local_md5 != remote_md5
+        if (files_to_evaluate.size > 0)
+          puts "\n\nDetermine which remaining files are actually different than their S3 counterpart."
+          Parallel.each(files_to_evaluate, :in_threads => 4) do |f|
+            print '.'
+            local_md5 = Digest::MD5.hexdigest(File.read("build/#{f}"))
+            remote_md5 = s3_files.get(f).etag
+            files_to_push << f if local_md5 != remote_md5
+          end
         end
 
-        puts "\n\nReady to apply updates to S3."
-        files_to_push.each do |f|
-          if remote_files.include?(f)
-            puts "Updating #{f}"
-            file = s3_files.get(f)
-            file.body = File.open("build/#{f}")
-            file.save
-          else
-            puts "Creating #{f}"
-            file = bucket.files.create({
-              :key => f,
-              :body => File.open("build/#{f}"),
-              :public => true
-            })
+        if files_to_push.size > 0
+          puts "\n\nReady to apply updates to S3."
+          Parallel.each(files_to_push, :in_threads => 4) do |f|
+            if remote_files.include?(f)
+              puts "Updating #{f}"
+              file = s3_files.get(f)
+              file.body = File.open("build/#{f}")
+              file.save
+            else
+              puts "Creating #{f}"
+              file = bucket.files.create({
+                :key => f,
+                :body => File.open("build/#{f}"),
+                :public => true
+              })
+            end
           end
         end
 
