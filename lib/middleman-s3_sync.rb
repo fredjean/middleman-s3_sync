@@ -55,7 +55,7 @@ module Middleman
 
         if files_to_push.size > 0
           puts "\n\nReady to apply updates to S3."
-          Parallel.each(files_to_push, :in_threads => 4) do |f|
+          files_to_push.each do |f|
             if remote_files.include?(f)
               puts "Updating #{f}"
               file = s3_files.get(f)
