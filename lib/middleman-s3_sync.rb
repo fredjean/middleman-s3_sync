@@ -35,7 +35,7 @@ module Middleman
         files_to_evaluate.each do |f|
           local_md5 = Digest::MD5.hexdigest(File.read("build/#{f}"))
           remote_md5 = s3_files.get(f).etag
-          files_to_push << file if local_md5 != remote_md5
+          files_to_push << f if local_md5 != remote_md5
         end
 
         files_to_push.each do |f|
