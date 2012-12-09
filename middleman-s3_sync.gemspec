@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["fred@fredjean.net"]
   gem.description   = %q{Only syncs files that have been updated to S3.}
   gem.summary       = %q{Tries really, really hard not to push files to S3.}
-  gem.homepage      = ""
+  gem.homepage      = "http://github.com/fredjean/middleman-s3_sync"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
