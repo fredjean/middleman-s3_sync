@@ -14,8 +14,8 @@ module Middleman
         true
       end
 
-      desc "sync", "Builds and push the minimum set of files needed to S3"
-      def sync
+      desc "s3_sync", "Builds and push the minimum set of files needed to S3"
+      def s3_sync
         shared_inst = ::Middleman::Application.server.inst
         bucket = shared_inst.options.bucket
         if (!bucket)

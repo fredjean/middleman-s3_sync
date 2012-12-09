@@ -28,6 +28,7 @@ module Middleman
 
         app.send :include, Helpers
 
+        options.public_path ||= "build"
         app.after_configuration do |config|
           after_build do |builder|
             ::Middleman::S3Sync.sync if options.after_build

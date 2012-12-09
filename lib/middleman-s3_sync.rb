@@ -2,6 +2,7 @@ require "middleman-core"
 require "fog"
 require 'digest/md5'
 require "middleman-s3_sync/version"
+require "middleman-s3_sync/commands"
 
 ::Middleman::Extensions.register(:s3_sync, '>= 3.0.0') do
   require 'middleman-s3_sync/extension'
@@ -11,8 +12,8 @@ end
 module Middleman
   module S3Sync
     class << self
-
       def sync
+        puts "Determine which files to upload..."
         local_files = Dir[options.public_path + "/**/*"]
           .reject { |f| File.directory?(f) }
           .map { |f| f.gsub(/^build\//, '') }
@@ -33,16 +34,18 @@ module Middleman
         # Are the files different? Use MD5 to see
         files_to_evaluate.each do |f|
           local_md5 = Digest::MD5.hexdigest(File.read("build/#{f}"))
-          remote_md5 = s3_files.get.etag
+          remote_md5 = s3_files.get(f).etag
           files_to_push << file if local_md5 != remote_md5
         end
 
         files_to_push.each do |f|
           if remote_files.include?(f)
+            puts "Updating #{f}"
             file = s3_files.get(f)
             file.body = File.open("build/#{f}")
             file.save
           else
+            puts "Creating #{f}"
             file = bucket.files.create({
               :key => f,
               :body => File.open("build/#{f}"),
@@ -53,6 +56,7 @@ module Middleman
 
         if options.delete
           files_to_delete.each do |f|
+            puts "Deleting #{f}"
             file = s3_files.get(f)
             file.destroy
           end
@@ -64,7 +68,8 @@ module Middleman
         @connection ||= Fog::Storage.new({
           :provider => 'AWS',
           :aws_access_key_id => options.aws_access_key_id,
-          :aws_secret_access_key => options.aws_secret_access_key
+          :aws_secret_access_key => options.aws_secret_access_key,
+          :region => options.region
         })
       end
 
