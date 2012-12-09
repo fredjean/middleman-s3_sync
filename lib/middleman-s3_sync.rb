@@ -31,13 +31,13 @@ module Middleman
         files_to_evaluate = local_files - files_to_push
 
         # No need to evaluate the files that are newer on S3 than the local files.
-        puts "Determine which local files are newer than it's counterpart on S3"
+        puts "Determine which local files are newer than their S3 counterparts"
         files_to_reject = []
         Parallel.each(files_to_evaluate, :in_threads => 4) do |f|
           print '.'
           local_mtime = File.mtime("build/#{f}")
           remote_mtime = s3_files.get(f).last_modified
-          files_to_reject << f if remote_mtime > local_mtime
+          files_to_reject << f if remote_mtime >= local_mtime
         end
 
         files_to_evaluate = files_to_evaluate - files_to_reject
