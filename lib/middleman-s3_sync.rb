@@ -37,7 +37,7 @@ module Middleman
           print '.'
           local_mtime = File.mtime("build/#{f}")
           remote_mtime = s3_files.get(f).last_modified
-          files_to_reject << f if remote_mtime < local_mtime
+          files_to_reject << f if remote_mtime > local_mtime
         end
 
         files_to_evaluate = files_to_evaluate - files_to_reject
@@ -70,6 +70,8 @@ module Middleman
               })
             end
           end
+        else
+          puts "\n\nNo files to update."
         end
 
         if options.delete
