@@ -60,6 +60,7 @@ module Middleman
               puts "Updating #{f}"
               file = s3_files.get(f)
               file.body = File.open("build/#{f}")
+              file.public = true
               file.save
             else
               puts "Creating #{f}"
