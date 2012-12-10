@@ -67,7 +67,8 @@ module Middleman
               file = bucket.files.create({
                 :key => f,
                 :body => File.open("build/#{f}"),
-                :public => true
+                :public => true,
+                :acl => 'public-read'
               })
             end
           end
