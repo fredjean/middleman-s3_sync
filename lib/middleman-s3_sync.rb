@@ -15,7 +15,7 @@ module Middleman
     class << self
       def sync
         puts "Gathering local files."
-        local_files = Dir[options.public_path + "/**/*"]
+        local_files = (Dir[options.public_path + "/**/*"] + Dir[options.public_path + "/**/.*"])
           .reject { |f| File.directory?(f) }
           .map { |f| f.gsub(/^build\//, '') }
         puts "Gathering remote files."
