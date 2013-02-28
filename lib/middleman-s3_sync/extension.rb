@@ -4,7 +4,6 @@ module Middleman
   module S3Sync
     class Options < Struct.new(
       :prefix,
-      :public_path,
       :bucket,
       :region,
       :aws_access_key_id,
@@ -12,6 +11,7 @@ module Middleman
       :after_build,
       :delete,
       :existing_remote_file,
+      :build_dir
     )
     end
 
@@ -28,11 +28,12 @@ module Middleman
 
         app.send :include, Helpers
 
-        options.public_path ||= "build"
         app.after_configuration do |config|
-          after_build do |builder|
-            ::Middleman::S3Sync.sync if options.after_build
-          end
+          options.build_dir = build_dir
+        end
+
+        app.after_build do |builder|
+          ::Middleman::S3Sync.sync if options.after_build
         end
       end
 

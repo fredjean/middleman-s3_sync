@@ -15,9 +15,10 @@ module Middleman
     class << self
       def sync
         puts "Gathering local files."
-        local_files = (Dir[options.public_path + "/**/*"] + Dir[options.public_path + "/**/.*"])
+
+        local_files = (Dir[options.build_dir + "/**/*"] + Dir[options.build_dir + "/**/.*"])
           .reject { |f| File.directory?(f) }
-          .map { |f| f.gsub(/^build\//, '') }
+          .map { |f| f.gsub(/^#{options.build_dir}\//, '') }
         puts "Gathering remote files."
         remote_files = bucket.files.map { |f| f.key }
 
@@ -35,7 +36,7 @@ module Middleman
         files_to_reject = []
         Parallel.each(files_to_evaluate, :in_threads => 4) do |f|
           print '.'
-          local_mtime = File.mtime("build/#{f}")
+          local_mtime = File.mtime("#{options.build_dir}/#{f}")
           remote_mtime = s3_files.get(f).last_modified
           files_to_reject << f if remote_mtime >= local_mtime
         end
@@ -47,7 +48,7 @@ module Middleman
           puts "\n\nDetermine which remaining files are actually different than their S3 counterpart."
           Parallel.each(files_to_evaluate, :in_threads => 4) do |f|
             print '.'
-            local_md5 = Digest::MD5.hexdigest(File.read("build/#{f}"))
+            local_md5 = Digest::MD5.hexdigest(File.read("#{options.build_dir}/#{f}"))
             remote_md5 = s3_files.get(f).etag
             files_to_push << f if local_md5 != remote_md5
           end
@@ -59,14 +60,14 @@ module Middleman
             if remote_files.include?(f)
               puts "Updating #{f}"
               file = s3_files.get(f)
-              file.body = File.open("build/#{f}")
+              file.body = File.open("#{options.build_dir}/#{f}")
               file.public = true
               file.save
             else
               puts "Creating #{f}"
               file = bucket.files.create({
                 :key => f,
-                :body => File.open("build/#{f}"),
+                :body => File.open("#{options.build_dir}/#{f}"),
                 :public => true,
                 :acl => 'public-read'
               })
