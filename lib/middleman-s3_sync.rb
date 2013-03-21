@@ -65,6 +65,14 @@ module Middleman
               file = s3_files.get(f)
               file.body = File.open("#{options.build_dir}/#{f}")
               file.public = true
+              file.content_type = MIME::Types.of(f).first
+              ext = File.extname(f)[1..-1]
+
+              unless DONT_CACHE.include? ext
+                file.cache_control = "public, max-age=#{LONG_TIME}"
+                file.expires = CGI.rfc1123_date(Time.now + LONG_TIME)
+              end
+
               file.save
             else
               puts "Creating #{f}"
@@ -72,8 +80,10 @@ module Middleman
                 :key => f,
                 :body => File.open("#{options.build_dir}/#{f}"),
                 :public => true,
-                :acl => 'public-read'
+                :acl => 'public-read',
+                :content_type => MIME::Types.of(f).first
               }
+
               # Add cache-control headers
               ext = File.extname(f)[1..-1]
               unless DONT_CACHE.include? ext
