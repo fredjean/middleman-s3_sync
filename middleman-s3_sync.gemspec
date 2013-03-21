@@ -6,7 +6,7 @@ require 'middleman-s3_sync/version'
 Gem::Specification.new do |gem|
   gem.name          = "middleman-s3_sync"
   gem.version       = Middleman::S3Sync::VERSION
-  gem.authors       = ["Frederic Jean"]
+  gem.authors       = ["Frederic Jean", "Will Koehler"]
   gem.email         = ["fred@fredjean.net"]
   gem.description   = %q{Only syncs files that have been updated to S3.}
   gem.summary       = %q{Tries really, really hard not to push files to S3.}
