@@ -62,15 +62,18 @@ module Middleman
               file = s3_files.get(f)
               file.body = File.open("#{options.build_dir}/#{f}")
               file.public = true
+              file.content_type = MIME::Types.of(f).first
               file.save
             else
               puts "Creating #{f}"
-              file = bucket.files.create({
+              file_attributes = {
                 :key => f,
                 :body => File.open("#{options.build_dir}/#{f}"),
                 :public => true,
-                :acl => 'public-read'
-              })
+                :acl => 'public-read',
+                :content_type => MIME::Types.of(f).first
+              }
+              file = bucket.files.create(file_attributes)
             end
           end
         else
