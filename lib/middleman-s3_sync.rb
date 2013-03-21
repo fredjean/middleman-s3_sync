@@ -13,6 +13,9 @@ end
 module Middleman
   module S3Sync
     class << self
+      LONG_TIME = 315360000   # 10 years
+      DONT_CACHE = ['html']   # types of files to exclude from browser cache
+
       def sync
         puts "Gathering local files."
 
@@ -63,17 +66,33 @@ module Middleman
               file.body = File.open("#{options.build_dir}/#{f}")
               file.public = true
               file.content_type = MIME::Types.of(f).first
+              ext = File.extname(f)[1..-1]
+
+              unless DONT_CACHE.include? ext
+                file.cache_control = "public, max-age=#{LONG_TIME}"
+                file.expires = CGI.rfc1123_date(Time.now + LONG_TIME)
+              end
+
               file.save
             else
               puts "Creating #{f}"
-              file_attributes = {
+              file_hash = {
                 :key => f,
                 :body => File.open("#{options.build_dir}/#{f}"),
                 :public => true,
                 :acl => 'public-read',
                 :content_type => MIME::Types.of(f).first
               }
-              file = bucket.files.create(file_attributes)
+
+              # Add cache-control headers
+              ext = File.extname(f)[1..-1]
+              unless DONT_CACHE.include? ext
+                file_hash.merge!({
+                  :cache_control => "public, max-age=#{LONG_TIME}",
+                  :expires => CGI.rfc1123_date(Time.now + LONG_TIME)
+                })
+              end
+              file = bucket.files.create(file_hash)
             end
           end
         else
