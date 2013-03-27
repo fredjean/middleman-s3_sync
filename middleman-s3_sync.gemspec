@@ -22,4 +22,6 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'parallel'
 
   gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'pry'
+  gem.add_development_dependency 'pry-nav'
 end
