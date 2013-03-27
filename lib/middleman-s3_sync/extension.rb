@@ -11,7 +11,8 @@ module Middleman
       :after_build,
       :delete,
       :existing_remote_file,
-      :build_dir
+      :build_dir,
+      :force
     )
     end
 
