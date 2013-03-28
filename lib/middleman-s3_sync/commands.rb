@@ -5,9 +5,6 @@ module Middleman
   module Cli
     class S3Sync < Thor
       include Thor::Actions
-
-      check_unknown_options!
-
       namespace :s3_sync
 
       def self.exit_on_failure?
@@ -28,9 +25,7 @@ module Middleman
         shared_inst.options.force = options[:force] if options[:force]
 
         ::Middleman::S3Sync.sync
-
       end
-
     end
   end
 end
