@@ -52,7 +52,7 @@ module Middleman
           if policy.empty?
             nil
           else
-            policy.join(",")
+            policy.join(", ")
           end
         end
 
