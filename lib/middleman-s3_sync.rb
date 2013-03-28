@@ -13,26 +13,23 @@ end
 module Middleman
   module S3Sync
     class << self
-      LONG_TIME = 315360000   # 10 years
-      DONT_CACHE = ['html']   # types of files to exclude from browser cache
-
       def sync
         puts "Gathering local files."
 
         local_files = (Dir[options.build_dir + "/**/*"] + Dir[options.build_dir + "/**/.*"])
           .reject { |f| File.directory?(f) }
           .map { |f| f.gsub(/^#{options.build_dir}\//, '') }
-        puts "Gathering remote files."
+        puts "Gathering remote files from #{options.bucket}"
         remote_files = bucket.files.map { |f| f.key }
 
         if options.force
           files_to_push = local_files
         else
           # First pass on the set of files to work with.
-          puts "Determine files to add to S3."
+          puts "Determine files to add to #{options.bucket}."
           files_to_push = local_files - remote_files
           if options.delete
-            puts "Determine which files to delete from S3"
+            puts "Determine which files to delete from #{options.bucket}"
             files_to_delete = remote_files - local_files
           end
           files_to_evaluate = local_files - files_to_push
@@ -62,7 +59,7 @@ module Middleman
         end
 
         if files_to_push.size > 0
-          puts "\n\nReady to apply updates to S3."
+          puts "\n\nReady to apply updates to #{options.bucket}."
           files_to_push.each do |f|
             if remote_files.include?(f)
               puts "Updating #{f}"
@@ -70,14 +67,9 @@ module Middleman
               file.body = File.open("#{options.build_dir}/#{f}")
               file.public = true
               file.content_type = MIME::Types.of(f).first
-              ext = File.extname(f)[1..-1]
-
-              if DONT_CACHE.include? ext
-                file.cache_control = nil
-                file.expires = nil
-              else
-                file.cache_control = "public, max-age=#{LONG_TIME}"
-                file.expires = CGI.rfc1123_date(Time.now + LONG_TIME)
+              if policy = options.caching_policy_for(file.content_type)
+                file.cache_control = policy.cache_control if policy.cache_control
+                file.expires = policy.expires if policy.expires
               end
 
               file.save
@@ -92,13 +84,11 @@ module Middleman
               }
 
               # Add cache-control headers
-              ext = File.extname(f)[1..-1]
-              unless DONT_CACHE.include? ext
-                file_hash.merge!({
-                  :cache_control => "public, max-age=#{LONG_TIME}",
-                  :expires => CGI.rfc1123_date(Time.now + LONG_TIME)
-                })
+              if policy = options.caching_policy_for(file_hash[:content_type])
+                file_hash[:cache_control] = policy.cache_control if policy.cache_control
+                file_hash[:expires] = policy.expires if policy.expires
               end
+
               file = bucket.files.create(file_hash)
             end
           end
