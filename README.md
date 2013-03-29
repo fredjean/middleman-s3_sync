@@ -48,7 +48,7 @@ You can then start synchronizing files with S3 through ```middleman s3_sync```.
 There are situations where you might need to push the files to S3. In
 such case, you can pass the ```--force``` option:
 
-    middleman s3_sync --force
+    $ middleman s3_sync --force
 
 ## HTTP Caching
 
