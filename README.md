@@ -90,16 +90,16 @@ based on it.
 
 The following keys can be set:
 
-  | Key                | Value   | Header             | Description                                                                                                                            |
-  | ---                | ----    | ------             | -----------                                                                                                                            |
-  | `max_age`          | seconds | `max-age`          | Specifies the maximum amount of time that a representation will be considered fresh. This value is relative to the time of the request |
-  | `s_maxage`         | seconds | `s-maxage`         | Only applies to shared (proxies) caches                                                                                                |
-  | `public`           | boolean | `public`           | Marks authenticated responses as cacheable.                                                                                            |
-  | `private`          | boolean | `private`          | Allows caches that are specific to one user to store the response. Shared caches (proxies) may not.                                    |
-  | `no_cache`         | boolean | `no-cache`         | Forces caches to submit the request to the origin server for validation before releasing a cached copy, every time.                    |
-  | `no_store`         | boolean | `no-store`         | Instructs caches not to keep a copy of the representation under any conditions.                                                        |
-  | `must_revalidate`  | boolean | `must-revalidate`  | Tells the caches that they must obey any freshness information you give them about a representation.                                   |
-  | `proxy_revalidate` | boolean | `proxy-revalidate` | Similar as `must-revalidate`, but only for proxies.                                                                                    |
+| Key                | Value   | Header             | Description                                                                                                                            |
+| ---                | ----    | ------             | -----------                                                                                                                            |
+| `max_age`          | seconds | `max-age`          | Specifies the maximum amount of time that a representation will be considered fresh. This value is relative to the time of the request |
+| `s_maxage`         | seconds | `s-maxage`         | Only applies to shared (proxies) caches                                                                                                |
+| `public`           | boolean | `public`           | Marks authenticated responses as cacheable.                                                                                            |
+| `private`          | boolean | `private`          | Allows caches that are specific to one user to store the response. Shared caches (proxies) may not.                                    |
+| `no_cache`         | boolean | `no-cache`         | Forces caches to submit the request to the origin server for validation before releasing a cached copy, every time.                    |
+| `no_store`         | boolean | `no-store`         | Instructs caches not to keep a copy of the representation under any conditions.                                                        |
+| `must_revalidate`  | boolean | `must-revalidate`  | Tells the caches that they must obey any freshness information you give them about a representation.                                   |
+| `proxy_revalidate` | boolean | `proxy-revalidate` | Similar as `must-revalidate`, but only for proxies.                                                                                    |
 
 ### Setting `Expires` Header
 
