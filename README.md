@@ -41,7 +41,46 @@ activate :s3_sync do |s3_sync|
 end
 ```
 
-You can then start synchronizing files with S3 through ```middleman s3_sync```. 
+You can then start synchronizing files with S3 through ```middleman s3_sync```.
+
+## Push All Content to S3
+
+There are situations where you might need to push the files to S3. In
+such case, you can pass the ```--force``` option:
+
+    middleman s3_sync --force
+
+## HTTP Caching
+
+By default, ```middleman-s3_sync``` does not set caching headers. In
+general, the default settings are sufficient. However, there are
+situations where you might want to set a different HTTP caching policy.
+This may be very helpful if you are using the ```asset_hash```
+extension.
+
+### Setting a policy based on the mime-type of a file
+
+You can set a caching policy for every files that match a certain
+mime-type. For example, setting max-age to 0 and kindly asking the
+browser to revalidate the content for HTML files would take the
+following form:
+
+```ruby
+caching_policy 'text/html', max_age: 0, must_revalidate:true
+```
+
+As a result, the following ```Cache-Control``` header would be set to ```max-age:0, must-revalidate```
+
+### Setting a Default Policy
+
+You can set the default policy by passing an options hash to ```default_caching_policy``` in your ```config.rb``` file:
+
+```ruby
+default_caching_policy max_age:(60 * 60 * 24 * 365)
+```
+
+This will apply the policy to any file that do not have a mime-type
+specific policy.
 
 ## A Debt of Gratitude
 
@@ -49,6 +88,9 @@ I used Middleman Sync as a template for building a Middleman extension.
 The code is well structured and easy to understand and it was easy to
 extend it to add my synchronization code. My gratitude goes to @karlfreeman
 and is work on Middleman sync.
+
+Many thanks to [Gnip](http://gnip.com) and [dojo4](http://dojo4.com) for
+supporting and sponsoring work on middleman-s3_sync.
 
 ## Contributing
 
