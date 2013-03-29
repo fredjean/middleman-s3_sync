@@ -66,7 +66,7 @@ browser to revalidate the content for HTML files would take the
 following form:
 
 ```ruby
-caching_policy 'text/html', max_age: 0, must_revalidate:true
+caching_policy 'text/html', max_age: 0, must_revalidate: true
 ```
 
 As a result, the following ```Cache-Control``` header would be set to ```max-age:0, must-revalidate```
@@ -81,6 +81,45 @@ default_caching_policy max_age:(60 * 60 * 24 * 365)
 
 This will apply the policy to any file that do not have a mime-type
 specific policy.
+
+### Caching Policies
+
+The [Caching Tutorial](http://www.mnot.net/cache_docs/) is a great
+introduction to HTTP caching. The caching policy code in this gem is
+based on it.
+
+The following keys can be set:
+
+  | Key                | Value   | Header             | Description                                                                                                                            |
+  | ---                | ----    | ------             | -----------                                                                                                                            |
+  | `max_age`          | seconds | `max-age`          | Specifies the maximum amount of time that a representation will be considered fresh. This value is relative to the time of the request |
+  | `s_maxage`         | seconds | `s-maxage`         | Only applies to shared (proxies) caches                                                                                                |
+  | `public`           | boolean | `public`           | Marks authenticated responses as cacheable.                                                                                            |
+  | `private`          | boolean | `private`          | Allows caches that are specific to one user to store the response. Shared caches (proxies) may not.                                    |
+  | `no_cache`         | boolean | `no-cache`         | Forces caches to submit the request to the origin server for validation before releasing a cached copy, every time.                    |
+  | `no_store`         | boolean | `no-store`         | Instructs caches not to keep a copy of the representation under any conditions.                                                        |
+  | `must_revalidate`  | boolean | `must-revalidate`  | Tells the caches that they must obey any freshness information you give them about a representation.                                   |
+  | `proxy_revalidate` | boolean | `proxy-revalidate` | Similar as `must-revalidate`, but only for proxies.                                                                                    |
+
+### Setting `Expires` Header
+
+You can pass the `expires` key to the `caching_policy` and
+`default_caching_policy` methods if you insist on setting the expires
+header on a results. You will need to pass it a Time object indicating
+when the resourse is set to expire.
+
+> Note that the `Cache-Control` header will take precedence over the
+> `Expires` header if both are present.
+
+### A Note About Browser Caching
+
+Browser caching is well specified. It hasn't always been the case.
+Still, even modern browsers have different behaviors if it suits it's
+developers or their employers. Specs are meant to be ignored and so they
+are (I'm looking at you Chrome!). Setting the `Cache-Control` or
+`Expires` headers are not a guarrantie that the browsers and the proxies
+that stand between them and your content will behave the way you want
+them to. YMMV.
 
 ## A Debt of Gratitude
 
