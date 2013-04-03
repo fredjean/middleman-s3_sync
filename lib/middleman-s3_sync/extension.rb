@@ -1,4 +1,5 @@
 require 'middleman-core'
+require 'map'
 
 module Middleman
   module S3Sync
