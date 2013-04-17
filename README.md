@@ -50,6 +50,13 @@ such case, you can pass the ```--force``` option:
 
     $ middleman s3_sync --force
 
+## Overriding the destination bucket
+
+You can now override the destination bucket using the --bucket switch.
+The command is:
+
+  $ middleman s3_sync --bucket=my.new.bucket
+
 ## HTTP Caching
 
 By default, ```middleman-s3_sync``` does not set caching headers. In
