@@ -55,7 +55,7 @@ such case, you can pass the ```--force``` option:
 You can now override the destination bucket using the --bucket switch.
 The command is:
 
-  $ middleman s3_sync --bucket=my.new.bucket
+    $ middleman s3_sync --bucket=my.new.bucket
 
 ## HTTP Caching
 
