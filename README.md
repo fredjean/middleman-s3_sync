@@ -1,5 +1,8 @@
 # Middleman::S3Sync
 
+[![Code
+Climate](https://codeclimate.com/github/fredjean/middleman-s3_sync.png)](https://codeclimate.com/github/fredjean/middleman-s3_sync)
+
 This gem determines which files need to be added, updated and optionally deleted
 and only transfer these files up. This reduces the impact of an update
 on a web site hosted on S3.
