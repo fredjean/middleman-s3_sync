@@ -15,24 +15,16 @@ module Middleman
   module S3Sync
     class << self
       def sync
-        if files_to_create.empty? && files_to_update.empty? && files_to_delete.empty?
+        unless work_to_be_done?
           puts "\nAll S3 files are up to date."
           return
         end
 
         puts "\nReady to apply updates to #{options.bucket}."
 
-        files_to_create.each do |r|
-          r.create!
-        end
-
-        files_to_update.each do |r|
-          r.update!
-        end
-
-        files_to_delete.each do |r|
-          r.destroy!
-        end
+        create_resources
+        update_resources
+        delete_resources
       end
 
       def bucket
@@ -66,6 +58,28 @@ module Middleman
 
                      (local_paths + remote_paths).uniq.sort
                    end
+      end
+
+      def create_resources
+        files_to_create.each do |r|
+          r.create!
+        end
+      end
+
+      def update_resources
+        files_to_update.each do |r|
+          r.update!
+        end
+      end
+
+      def delete_resources
+        files_to_delete.each do |r|
+          r.destroy!
+        end
+      end
+
+      def work_to_be_done?
+        files_to_create.empty? && files_to_update.empty? && files_to_delete.empty?
       end
 
       def files_to_delete
