@@ -51,13 +51,18 @@ module Middleman
       def paths
         @paths ||= begin
                      puts "Gathering the paths to evaluate."
-                     local_paths = (Dir[build_dir + "/**/*"] + Dir[build_dir + "/**/.*"])
-                       .reject { |p| File.directory?(p) }
-                       .pmap { |p| p.gsub(/#{build_dir}\//, '') }
-                     remote_paths = bucket.files.map { |f| f.key }
-
                      (local_paths + remote_paths).uniq.sort
                    end
+      end
+
+      def local_paths
+        @local_paths ||= (Dir[build_dir + "/**/*"] + Dir[build_dir + "/**/.*"])
+          .reject { |p| File.directory?(p) }
+          .pmap { |p| p.gsub(/#{build_dir}\//, '') }
+      end
+
+      def remote_paths
+        @remote_paths ||= bucket.files.map{ |f| f.key }
       end
 
       def create_resources
