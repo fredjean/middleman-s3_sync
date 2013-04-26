@@ -24,8 +24,8 @@ module Middleman
         }
 
         if caching_policy
-          attributes[:cache_control] = caching_policy.cache_control,
-            attributes[:expires] = caching_control.expires
+          attributes[:cache_control] = caching_policy.cache_control
+          attributes[:expires] = caching_control.expires
         end
 
         attributes
