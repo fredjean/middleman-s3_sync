@@ -43,11 +43,14 @@ module Middleman
       end
 
       def resources
-        progress_bar = ProgressBar.create(total: paths.length)
         @resources ||= paths.pmap do |p|
           progress_bar.increment
           S3Sync::Resource.new(p)
         end
+      end
+
+      def progress_bar
+        @progress_bar ||= ProgressBar.create(total: paths.length)
       end
 
       def paths
