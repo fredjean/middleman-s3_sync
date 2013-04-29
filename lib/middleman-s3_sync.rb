@@ -1,6 +1,7 @@
 require 'middleman-core'
 require 'fog'
 require 'pmap'
+require 'ruby-progressbar'
 require 'digest/md5'
 require 'middleman-s3_sync/version'
 require 'middleman-s3_sync/commands'
@@ -42,8 +43,9 @@ module Middleman
       end
 
       def resources
+        progress_bar = ProgressBar.create(total: paths.length)
         @resources ||= paths.pmap do |p|
-          print '.'
+          progress_bar.increment
           S3Sync::Resource.new(p)
         end
       end

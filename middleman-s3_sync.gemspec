@@ -21,6 +21,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'fog'
   gem.add_runtime_dependency 'map'
   gem.add_runtime_dependency 'pmap'
+  gem.add_runtime_dependency 'ruby-progressbar'
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'pry'
