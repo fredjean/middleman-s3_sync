@@ -84,7 +84,7 @@ module Middleman
       end
 
       def work_to_be_done?
-        files_to_create.empty? && files_to_update.empty? && files_to_delete.empty?
+        !(files_to_create.empty? && files_to_update.empty? && files_to_delete.empty?)
       end
 
       def files_to_delete
