@@ -21,13 +21,14 @@ module Middleman
 
       def s3_sync
         shared_inst = ::Middleman::Application.server.inst
-        bucket = shared_inst.options.bucket
+        bucket = shared_inst.s3_sync_options.bucket
         if (!bucket)
           raise Thor::Error.new "You need to activate this extension."
         end
 
-        shared_inst.options.force = options[:force] if options[:force]
-        shared_inst.options.bucket = options[:bucket] if options[:bucket]
+        # Override options based on what was passed on the command line...
+        shared_inst.s3_sync_options.force = options[:force] if options[:force]
+        shared_inst.s3_sync_options.bucket = options[:bucket] if options[:bucket]
 
         ::Middleman::S3Sync.sync
       end

@@ -128,7 +128,7 @@ module Middleman
       end
 
       def options
-        Middleman::S3Sync.options
+        Middleman::S3Sync.s3_sync_options
       end
     end
   end

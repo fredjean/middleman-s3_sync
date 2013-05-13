@@ -66,7 +66,7 @@ module Middleman
     end
 
     class << self
-      def options
+      def s3_sync_options
         @@options
       end
 
@@ -90,16 +90,16 @@ module Middleman
       alias :included :registered
 
       module Helpers
-        def options
-          ::Middleman::S3Sync.options
+        def s3_sync_options
+          ::Middleman::S3Sync.s3_sync_options
         end
 
         def default_caching_policy(policy = {})
-          options.add_caching_policy(:default, policy)
+          s3_sync_options.add_caching_policy(:default, policy)
         end
 
         def caching_policy(content_type, policy = {})
-          options.add_caching_policy(content_type, policy)
+          s3_sync_options.add_caching_policy(content_type, policy)
         end
       end
     end

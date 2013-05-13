@@ -21,7 +21,7 @@ module Middleman
           return
         end
 
-        puts "\nReady to apply updates to #{options.bucket}."
+        puts "\nReady to apply updates to #{s3_sync_options.bucket}."
 
         create_resources
         update_resources
@@ -29,17 +29,16 @@ module Middleman
       end
 
       def bucket
-        @bucket ||= connection.directories.get(options.bucket)
+        @bucket ||= connection.directories.get(s3_sync_options.bucket)
       end
 
       protected
       def connection
         @connection ||= Fog::Storage.new({
           :provider => 'AWS',
-          :aws_access_key_id => options.aws_access_key_id,
-          :aws_secret_access_key => options.aws_secret_access_key,
-          :region => options.region,
-          :path_style => true
+          :aws_access_key_id => s3_sync_options.aws_access_key_id,
+          :aws_secret_access_key => s3_sync_options.aws_secret_access_key,
+          :region => s3_sync_options.region
         })
       end
 
@@ -94,7 +93,7 @@ module Middleman
       end
 
       def files_to_delete
-        @files_to_delete ||= if options.delete
+        @files_to_delete ||= if s3_sync_options.delete
                                  resources.select { |r| r.to_delete? }
                              else
                                []
@@ -106,13 +105,13 @@ module Middleman
       end
 
       def files_to_update
-        return resources.select { |r| r.local? } if options.force
+        return resources.select { |r| r.local? } if s3_sync_options.force
 
         @files_to_update ||= resources.select { |r| r.to_update? }
       end
 
       def build_dir
-        @build_dir ||= options.build_dir
+        @build_dir ||= s3_sync_options.build_dir
       end
     end
   end
