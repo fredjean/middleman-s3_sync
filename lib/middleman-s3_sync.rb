@@ -38,7 +38,8 @@ module Middleman
           :provider => 'AWS',
           :aws_access_key_id => options.aws_access_key_id,
           :aws_secret_access_key => options.aws_secret_access_key,
-          :region => options.region
+          :region => options.region,
+          :path_style => true
         })
       end
 
