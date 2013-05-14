@@ -5,6 +5,7 @@ require 'ruby-progressbar'
 require 'digest/md5'
 require 'middleman-s3_sync/version'
 require 'middleman-s3_sync/commands'
+require 'middleman/s3_sync/status'
 require 'middleman/s3_sync/resource'
 
 Fog::Logger[:warning] = nil
@@ -17,13 +18,15 @@ end
 module Middleman
   module S3Sync
     class << self
+      include Status
+
       def sync
         unless work_to_be_done?
-          puts "\nAll S3 files are up to date."
+          say_status "\nAll S3 files are up to date."
           return
         end
 
-        puts "\nReady to apply updates to #{s3_sync_options.bucket}."
+        say_status "\nReady to apply updates to #{s3_sync_options.bucket}."
 
         create_resources
         update_resources
@@ -57,7 +60,7 @@ module Middleman
 
       def paths
         @paths ||= begin
-                     puts "Gathering the paths to evaluate."
+                     say_status "Gathering the paths to evaluate."
                      (remote_paths + local_paths).uniq.sort
                    end
       end

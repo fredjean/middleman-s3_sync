@@ -3,6 +3,8 @@ module Middleman
     class Resource
       attr_accessor :path, :s3_resource, :content_type, :gzipped
 
+      include Status
+
       def initialize(path)
         @path = path
         @s3_resource = bucket.files.get(path) rescue nil
@@ -36,7 +38,7 @@ module Middleman
       alias :attributes :to_h
 
       def update!
-        puts "Updating #{path}#{ gzipped ? ' (gzipped)' : ''}"
+        say_status "Updating #{path}#{ gzipped ? ' (gzipped)'.blue : ''}"
         s3_resource.body = body
         s3_resource.public = true
         s3_resource.acl = 'public-read'
@@ -64,12 +66,12 @@ module Middleman
       end
 
       def destroy!
-        puts "Deleting #{path}"
+        say_status "Deleting #{path}".red
         s3_resource.destroy
       end
 
       def create!
-        puts "Creating #{path}#{ gzipped ? ' (gzipped)' : ''}"
+        say_status "Creating #{path}#{ gzipped ? ' (gzipped)'.blue : ''}"
         bucket.files.create(to_h)
       end
 
