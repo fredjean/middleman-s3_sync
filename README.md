@@ -41,6 +41,7 @@ activate :s3_sync do |s3_sync|
   s3_sync.aws_secret_access_key = 'AWS SECRET KEY'
   s3_sync.delete                = false # We delete stray files by default.
   s3_sync.after_build           = false # We chain after the build step by default. This may not be your desired behavior...
+  s3_sync.prefer_gzip           = true
 end
 ```
 
@@ -130,6 +131,14 @@ are (I'm looking at you Chrome!). Setting the `Cache-Control` or
 `Expires` headers are not a guarrantie that the browsers and the proxies
 that stand between them and your content will behave the way you want
 them to. YMMV.
+
+### GZipped Content Encoding
+
+You can set the ```prefer_gzip``` option to look for a gzipped version
+of a resource. The gzipped version of the resource will be pushed to S3
+instead of the original and the ```Content-Encoding``` and ```Content-Type```
+headers will be set correctly. This will cause Amazon to serve the
+compressed version of the resource.
 
 ## A Debt of Gratitude
 

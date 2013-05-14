@@ -56,14 +56,21 @@ module Middleman
       def paths
         @paths ||= begin
                      puts "Gathering the paths to evaluate."
-                     (local_paths + remote_paths).uniq.sort
+                     (remote_paths + local_paths).uniq.sort
                    end
       end
 
       def local_paths
-        @local_paths ||= (Dir[build_dir + "/**/*"] + Dir[build_dir + "/**/.*"])
-          .reject { |p| File.directory?(p) }
-          .pmap { |p| p.gsub(/#{build_dir}\//, '') }
+        @local_paths ||= begin
+                           local_paths = (Dir[build_dir + "/**/*"] + Dir[build_dir + "/**/.*"])
+                                           .reject { |p| File.directory?(p) }
+
+                           if s3_sync_options.prefer_gzip
+                             local_paths.reject! { |p| p =~ /\.gz$/ && File.exist?(p.gsub(/\.gz$/, '')) }
+                           end
+
+                           local_paths.pmap { |p| p.gsub(/#{build_dir}\//, '') }
+                         end
       end
 
       def remote_paths

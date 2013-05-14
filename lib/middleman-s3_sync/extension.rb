@@ -13,7 +13,8 @@ module Middleman
       :delete,
       :existing_remote_file,
       :build_dir,
-      :force
+      :force,
+      :prefer_gzip
     )
 
       def add_caching_policy(content_type, options)

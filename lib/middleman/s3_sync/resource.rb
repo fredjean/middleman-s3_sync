@@ -1,11 +1,10 @@
 module Middleman
   module S3Sync
     class Resource
-      attr_accessor :path, :local_path, :s3_resource, :content_type
+      attr_accessor :path, :s3_resource, :content_type, :gzipped
 
       def initialize(path)
         @path = path
-        @local_path = build_dir + '/' + path
         @s3_resource = bucket.files.get(path) rescue nil
       end
 
@@ -28,22 +27,40 @@ module Middleman
           attributes[:expires] = caching_control.expires
         end
 
+        if options.prefer_gzip && gzipped
+          attributes[:content_encoding] = "gzip"
+        end
+
         attributes
       end
       alias :attributes :to_h
 
       def update!
-        puts "Updating #{path}"
+        puts "Updating #{path}#{ gzipped ? ' (gzipped)' : ''}"
         s3_resource.body = body
         s3_resource.public = true
         s3_resource.acl = 'public-read'
         s3_resource.content_type = content_type
+
         if caching_policy
           file.cache_control = caching_policy.cache_control
           file.expires = caching_policy.expires
         end
 
+        if options.prefer_gzip && gzipped
+          s3_resource.content_encoding = "gzip"
+        end
+
         s3_resource.save
+      end
+
+      def local_path
+        local_path = build_dir + '/' + path
+        if options.prefer_gzip && File.exist?(local_path + ".gz")
+          @gzipped = true
+          local_path += ".gz"
+        end
+        local_path
       end
 
       def destroy!
@@ -52,7 +69,7 @@ module Middleman
       end
 
       def create!
-        puts "Creating #{path}"
+        puts "Creating #{path}#{ gzipped ? ' (gzipped)' : ''}"
         bucket.files.create(to_h)
       end
 
@@ -111,7 +128,7 @@ module Middleman
       end
 
       def content_type
-        @content_type ||= MIME::Types.of(local_path).first
+        @content_type ||= MIME::Types.of(path).first
       end
 
       def caching_policy
