@@ -7,6 +7,8 @@ require 'middleman-s3_sync/version'
 require 'middleman-s3_sync/commands'
 require 'middleman/s3_sync/resource'
 
+Fog::Logger[:warning] = nil
+
 ::Middleman::Extensions.register(:s3_sync, '>= 3.0.0') do
   require 'middleman-s3_sync/extension'
   ::Middleman::S3Sync
