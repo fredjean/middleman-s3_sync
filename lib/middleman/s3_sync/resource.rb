@@ -38,7 +38,7 @@ module Middleman
       alias :attributes :to_h
 
       def update!
-        say_status "Updating #{path}#{ gzipped ? ' (gzipped)'.blue : ''}"
+        say_status "Updating".blue + " #{path}#{ gzipped ? ' (gzipped)'.white : ''}"
         s3_resource.body = body
         s3_resource.public = true
         s3_resource.acl = 'public-read'
@@ -66,12 +66,12 @@ module Middleman
       end
 
       def destroy!
-        say_status "Deleting #{path}".red
+        say_status "Deleting".red + " #{path}".red
         s3_resource.destroy
       end
 
       def create!
-        say_status "Creating #{path}#{ gzipped ? ' (gzipped)'.blue : ''}"
+        say_status "Creating".green + " #{path}#{ gzipped ? ' (gzipped)'.white : ''}"
         bucket.files.create(to_h)
       end
 
