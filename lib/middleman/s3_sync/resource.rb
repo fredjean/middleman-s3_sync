@@ -26,7 +26,7 @@ module Middleman
 
         if caching_policy
           attributes[:cache_control] = caching_policy.cache_control
-          attributes[:expires] = caching_control.expires
+          attributes[:expires] = caching_policy.expires
         end
 
         if options.prefer_gzip && gzipped
