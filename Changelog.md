@@ -1,7 +1,5 @@
 # Middleman::S3Sync Changelog
 
---
-
 ## v3.0.11
 
 * Adds support for GZipped resources (fixes #3)
