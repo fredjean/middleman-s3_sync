@@ -45,8 +45,8 @@ module Middleman
         s3_resource.content_type = content_type
 
         if caching_policy
-          file.cache_control = caching_policy.cache_control
-          file.expires = caching_policy.expires
+          s3_resource.cache_control = caching_policy.cache_control
+          s3_resource.expires = caching_policy.expires
         end
 
         if options.prefer_gzip && gzipped
