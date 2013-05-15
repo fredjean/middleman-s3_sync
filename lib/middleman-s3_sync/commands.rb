@@ -18,6 +18,9 @@ module Middleman
       option :bucket, type: :string,
                       desc: "Specify which bucket to use, overrides the configured bucket.",
                       aliases: :b
+      option :verbose, type: :boolean,
+                       desc: "Adds more verbosity...",
+                       aliases: :v
 
       def s3_sync
         shared_inst = ::Middleman::Application.server.inst
@@ -29,6 +32,7 @@ module Middleman
         # Override options based on what was passed on the command line...
         shared_inst.s3_sync_options.force = options[:force] if options[:force]
         shared_inst.s3_sync_options.bucket = options[:bucket] if options[:bucket]
+        shared_inst.s3_sync_options.verbose = options[:verbose] if options[:verbose]
 
         ::Middleman::S3Sync.sync
       end
