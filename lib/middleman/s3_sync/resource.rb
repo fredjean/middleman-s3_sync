@@ -3,6 +3,8 @@ module Middleman
     class Resource
       attr_accessor :path, :s3_resource, :content_type, :gzipped
 
+      CONTENT_MD5_KEY = 'x-amz-meta-content-md5'
+
       include Status
 
       def initialize(path)
@@ -21,7 +23,8 @@ module Middleman
           :body => body,
           :public => true,
           :acl => 'public-read',
-          :content_type => content_type
+          :content_type => content_type,
+          CONTENT_MD5_KEY => content_md5
         }
 
         if caching_policy
@@ -43,6 +46,7 @@ module Middleman
         s3_resource.public = true
         s3_resource.acl = 'public-read'
         s3_resource.content_type = content_type
+        s3_resource.metadata = { CONTENT_MD5_KEY => content_md5 }
 
         if caching_policy
           s3_resource.cache_control = caching_policy.cache_control
@@ -97,7 +101,7 @@ module Middleman
 
       def status
         @status ||= if local? && remote?
-                      if local_md5 != remote_md5
+                      if content_md5 != remote_md5
                         :updated
                       else
                         :identical
@@ -121,12 +125,16 @@ module Middleman
         @relative_path ||= local_path.gsub(/#{build_dir}/, '')
       end
 
-      def local_md5
-        @local_md5 ||= Digest::MD5.hexdigest(File.read(local_path))
+      def remote_md5
+        s3_resource.metadata[CONTENT_MD5_KEY] || s3_resource.etag
       end
 
-      def remote_md5
-        s3_resource.etag
+      def content_md5
+        @content_md5 ||= Digest::MD5.hexdigest(File.read(original_path))
+      end
+
+      def original_path
+        gzipped ? local_path.gsub(/\.gz$/, '') : local_path
       end
 
       def content_type
