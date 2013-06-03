@@ -2,6 +2,10 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v3.0.13
+
+* Fails gracefully when the extension isn't activated
+
 ## v3.0.12
 
 * Remove S3 objects that look like directories. Addresses [issue
