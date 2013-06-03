@@ -1,17 +1,17 @@
 require 'middleman-core'
-require 'fog'
-require 'pmap'
-require 'ruby-progressbar'
-require 'digest/md5'
-require 'middleman-s3_sync/version'
-require 'middleman-s3_sync/commands'
-require 'middleman/s3_sync/status'
-require 'middleman/s3_sync/resource'
+require 'middleman-s3_sync/extension'
 
 Fog::Logger[:warning] = nil
 
 ::Middleman::Extensions.register(:s3_sync, '>= 3.0.0') do
-  require 'middleman-s3_sync/extension'
+  require 'fog'
+  require 'pmap'
+  require 'digest/md5'
+  require 'middleman-s3_sync/version'
+  require 'middleman-s3_sync/commands'
+  require 'middleman/s3_sync/status'
+  require 'middleman/s3_sync/resource'
+  require 'ruby-progressbar'
   ::Middleman::S3Sync
 end
 
