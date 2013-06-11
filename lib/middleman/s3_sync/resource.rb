@@ -76,7 +76,7 @@ module Middleman
       end
 
       def destroy!
-        say_status "Deleting".red + " #{path}".red
+        say_status "Deleting".red + " #{path}"
         s3_resource.destroy
       end
 
