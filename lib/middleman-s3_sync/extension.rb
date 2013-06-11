@@ -34,6 +34,26 @@ module Middleman
         @caching_policies ||= Map.new
       end
 
+      def aws_access_key_id
+        self[:aws_access_key_id] || ENV['AWS_ACCESS_KEY_ID']
+      end
+
+      def aws_secret_access_key
+        self[:aws_secret_access_key] || ENV['AWS_SECRET_ACCESS_KEY']
+      end
+
+      def delete
+        self[:delete].nil? ? true : self[:delete]
+      end
+
+      def after_build
+        self[:after_build].nil? ? false : self[:after_build]
+      end
+
+      def prefer_gzip
+        self[:prefer_gzip].nil? ? true : self[:prefer_gzip]
+      end
+
       protected
       class BrowserCachePolicy
         attr_accessor :policies
