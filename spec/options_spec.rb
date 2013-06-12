@@ -28,6 +28,7 @@ describe Middleman::S3Sync::Options do
       policy.to_s.should_not =~ /no-store/
       policy.to_s.should_not =~ /must-revalidate/
       policy.to_s.should_not =~ /proxy-revalidate/
+      policy.expires.should be_nil
     end
 
     it "should set the max-age policy" do
@@ -82,6 +83,22 @@ describe Middleman::S3Sync::Options do
       options.add_caching_policy :default, :proxy_revalidate => true
 
       policy.to_s.should =~ /proxy-revalidate/
+    end
+
+    it "should divide caching policies with commas and a space" do
+      options.add_caching_policy :default, :max_age => 300, :public => true
+
+      policies = policy.to_s.split(/, /)
+      policies.length.should == 2
+      policies.first.should == 'max-age=300'
+      policies.last.should == 'public'
+    end
+
+    it "should set the expiration date" do
+      expiration = 1.years.from_now
+
+      options.add_caching_policy :default, :expires => expiration
+      policy.expires.should == CGI.rfc1123_date(expiration)
     end
   end
 end

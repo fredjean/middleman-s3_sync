@@ -6,6 +6,7 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
 require 'middleman-s3_sync'
+require 'timerizer'
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
