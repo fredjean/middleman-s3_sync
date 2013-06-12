@@ -29,4 +29,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'pry-nav'
   gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'timerizer'
+  gem.add_development_dependency 'travis'
+  gem.add_development_dependency 'travis-lint'
 end
