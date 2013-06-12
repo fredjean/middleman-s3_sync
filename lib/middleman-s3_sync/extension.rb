@@ -93,7 +93,7 @@ module Middleman
       end
 
       def registered(app, options_hash = {}, &block)
-        options = Options.new(options_hash)
+        options = Options.new
         yield options if block_given?
 
         @@options = options
