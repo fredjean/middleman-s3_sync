@@ -1,7 +1,7 @@
 require 'fog'
 require 'pmap'
 require 'digest/md5'
-require 'middleman-s3_sync/version'
+require 'middleman/s3_sync/version'
 require 'middleman-s3_sync/commands'
 require 'middleman/s3_sync/status'
 require 'middleman/s3_sync/resource'

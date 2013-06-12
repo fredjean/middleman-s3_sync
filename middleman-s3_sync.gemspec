@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'middleman-s3_sync/version'
+require 'middleman/s3_sync/version'
 
 Gem::Specification.new do |gem|
   gem.name          = "middleman-s3_sync"
