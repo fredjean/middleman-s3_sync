@@ -3,20 +3,20 @@ require 'map'
 
 module Middleman
   module S3Sync
-    class Options < Struct.new(
-      :prefix,
-      :bucket,
-      :region,
-      :aws_access_key_id,
-      :aws_secret_access_key,
-      :after_build,
-      :delete,
-      :existing_remote_file,
-      :build_dir,
-      :force,
-      :prefer_gzip,
-      :verbose
-    )
+    class Options
+      attr_accessor \
+        :prefix,
+        :bucket,
+        :region,
+        :aws_access_key_id,
+        :aws_secret_access_key,
+        :after_build,
+        :delete,
+        :existing_remote_file,
+        :build_dir,
+        :force,
+        :prefer_gzip,
+        :verbose
 
       def add_caching_policy(content_type, options)
         caching_policies[content_type.to_s] = BrowserCachePolicy.new(options)
@@ -35,23 +35,23 @@ module Middleman
       end
 
       def aws_access_key_id
-        self[:aws_access_key_id] || ENV['AWS_ACCESS_KEY_ID']
+        @aws_access_key_id || ENV['AWS_ACCESS_KEY_ID']
       end
 
       def aws_secret_access_key
-        self[:aws_secret_access_key] || ENV['AWS_SECRET_ACCESS_KEY']
+        @aws_secret_access_key || ENV['AWS_SECRET_ACCESS_KEY']
       end
 
       def delete
-        self[:delete].nil? ? true : self[:delete]
+        @delete.nil? ? true : self[:delete]
       end
 
       def after_build
-        self[:after_build].nil? ? false : self[:after_build]
+        @after_build.nil? ? false : self[:after_build]
       end
 
       def prefer_gzip
-        self[:prefer_gzip].nil? ? true : self[:prefer_gzip]
+        @prefer_gzip.nil? ? true : self[:prefer_gzip]
       end
 
       protected
