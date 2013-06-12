@@ -62,7 +62,7 @@ module Middleman
         def cache_control
           policy = []
           policy << "max-age=#{policies.max_age}" if policies.has_key?(:max_age)
-          policy << "s-maxage=#{s_maxage}" if policies.has_key?(:s_maxage)
+          policy << "s-maxage=#{policies.s_maxage}" if policies.has_key?(:s_maxage)
           policy << "public" if policies.fetch(:public, false)
           policy << "private" if policies.fetch(:private, false)
           policy << "no-cache" if policies.fetch(:no_cache, false)
@@ -74,6 +74,10 @@ module Middleman
           else
             policy.join(", ")
           end
+        end
+
+        def to_s
+          cache_control
         end
 
         def expires
