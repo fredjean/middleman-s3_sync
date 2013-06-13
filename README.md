@@ -46,6 +46,27 @@ end
 
 You can then start synchronizing files with S3 through ```middleman s3_sync```.
 
+### Configuration Defaults
+
+The following defaults apply to the configuration items:
+
+| Setting               | Default                            |
+| -----------------     | ----------------------------       |
+| aws_access_key_id     | ```ENV['AWS_ACCESS_KEY_ID```       |
+| aws_secret_access_key | ```ENV['AWS_SECRET_ACCESS_KEY']``` |
+| delete                | ```true```                         |
+| after_build           | ```false```                        |
+| prefer_gzip           | ```true```                         |
+
+You do not need to specify the settings that match the defaults. This
+simplify the configuration of the extension:
+
+```ruby
+activate :s3_sync do |s3_sync|
+  s3_sync.bucket = 'my.bucket.com'
+end
+```
+
 ## Push All Content to S3
 
 There are situations where you might need to push the files to S3. In
