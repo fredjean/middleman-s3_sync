@@ -91,6 +91,10 @@ module Middleman
         bucket.files.create(to_h)
       end
 
+      def ignore!
+        say_status "Ignoring".yellow + " #{path} #{ redirect? ? "(redirect)".white : "" }"
+      end
+
       def to_delete?
         status == :deleted
       end
@@ -107,6 +111,10 @@ module Middleman
         status == :updated
       end
 
+      def to_ignore?
+        status == :ignored
+      end
+
       def body
         @body = File.open(local_path)
       end
@@ -120,6 +128,8 @@ module Middleman
                       end
                     elsif local?
                       :new
+                    elsif redirect?
+                      :ignored
                     else
                       :deleted
                     end
@@ -131,6 +141,10 @@ module Middleman
 
       def remote?
         s3_resource
+      end
+
+      def redirect?
+        s3_resource.metadata.has_key? 'x-amz-website-redirect-location'
       end
 
       def relative_path

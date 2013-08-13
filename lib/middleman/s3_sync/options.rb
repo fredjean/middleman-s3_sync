@@ -40,15 +40,15 @@ module Middleman
       end
 
       def delete
-        @delete.nil? ? true : self[:delete]
+        @delete.nil? ? true : @delete
       end
 
       def after_build
-        @after_build.nil? ? false : self[:after_build]
+        @after_build.nil? ? false : @after_build
       end
 
       def prefer_gzip
-        @prefer_gzip.nil? ? true : self[:prefer_gzip]
+        (@prefer_gzip.nil? ? true : @prefer_gzip)
       end
 
       protected

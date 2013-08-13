@@ -24,6 +24,7 @@ module Middleman
 
         say_status "\nReady to apply updates to #{s3_sync_options.bucket}."
 
+        ignore_resources
         create_resources
         update_resources
         delete_resources
@@ -96,6 +97,12 @@ module Middleman
         end
       end
 
+      def ignore_resources
+        files_to_ignore.each do |r|
+          r.ignore!
+        end
+      end
+
       def work_to_be_done?
         !(files_to_create.empty? && files_to_update.empty? && files_to_delete.empty?)
       end
@@ -116,6 +123,10 @@ module Middleman
         return resources.select { |r| r.local? } if s3_sync_options.force
 
         @files_to_update ||= resources.select { |r| r.to_update? }
+      end
+
+      def files_to_ignore
+        @files_to_ignore ||= resources.select { |r| r.to_ignore? }
       end
 
       def build_dir
