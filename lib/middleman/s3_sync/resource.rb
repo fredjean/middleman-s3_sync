@@ -92,7 +92,12 @@ module Middleman
       end
 
       def ignore!
-        say_status "Ignoring".yellow + " #{path} #{ redirect? ? "(redirect)".white : "" }"
+        reason = if redirect?
+                   :redirect
+                 elsif directory?
+                   :directory
+                 end
+        say_status "Ignoring".yellow + " #{path} #{ reason ? "(#{reason})".white : "" }"
       end
 
       def to_delete?
@@ -130,6 +135,8 @@ module Middleman
                       :new
                     elsif redirect?
                       :ignored
+                    elsif directory?
+                      :ignored
                     else
                       :deleted
                     end
@@ -145,6 +152,10 @@ module Middleman
 
       def redirect?
         s3_resource.metadata.has_key? 'x-amz-website-redirect-location'
+      end
+
+      def directory?
+        File.directory?(local_path)
       end
 
       def relative_path
