@@ -67,6 +67,35 @@ activate :s3_sync do |s3_sync|
 end
 ```
 
+### Providing AWS Credentials
+
+There are a few ways to provide the AWS credentials for s3_sync:
+
+#### Through ```config.rb```
+
+You can set the aws_access_key_id and aws_secret_access_key in the block
+that is passed to the activate method.
+
+#### Through ```.s3_sync``` File
+
+You can create a ```.s3_sync``` at the root of your middleman project.
+The credentials are passed in the YAML format. The keys match the
+options keys.
+
+The .s3_sync file takes precedence to the configuration passed in the
+activate method.
+
+#### Through Environment
+
+You can also pass the credentials through environment variables. They
+map to the following values:
+
+| aws_access_key_id     | ```ENV['AWS_ACCESS_KEY_ID```       |
+| aws_secret_access_key | ```ENV['AWS_SECRET_ACCESS_KEY']``` |
+
+The environment is used when the credentials are not set in the activate
+method or passed through the ```.s3_sync``` configuration file.
+
 ## Push All Content to S3
 
 There are situations where you might need to push the files to S3. In
