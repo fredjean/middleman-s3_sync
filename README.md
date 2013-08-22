@@ -85,6 +85,8 @@ options keys.
 The .s3_sync file takes precedence to the configuration passed in the
 activate method.
 
+A sample ```.s3_sync``` file is included at the root of this repo.
+
 #### Through Environment
 
 You can also pass the credentials through environment variables. They
