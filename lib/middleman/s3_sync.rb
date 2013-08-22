@@ -76,7 +76,7 @@ module Middleman
       end
 
       def remote_paths
-        @remote_paths ||= bucket.files.map{ |f| f.key }.reject { |p| p =~ %r{/$} }
+        @remote_paths ||= bucket.files.map{ |f| f.key }
       end
 
       def create_resources

@@ -125,7 +125,9 @@ module Middleman
       end
 
       def status
-        @status ||= if local? && remote?
+        @status ||= if directory?
+                      :ignored
+                    elsif local? && remote?
                       if content_md5 != remote_md5
                         :updated
                       else
@@ -134,8 +136,6 @@ module Middleman
                     elsif local?
                       :new
                     elsif redirect?
-                      :ignored
-                    elsif directory?
                       :ignored
                     else
                       :deleted
