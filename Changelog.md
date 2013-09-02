@@ -2,6 +2,23 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v3.0.16
+
+* Adds the ignore directory and redirects logic to the --force option as
+  well.
+
+## v3.0.15
+
+* Ignore objects that look like directories. In some cases, S3 objects
+  where created to simulate directories. S3 Sync would crash when
+  processing these and a matching local directory was present.
+
+## v3.0.14
+
+* No longer deletes redirects from the S3 bucket. This prevents a
+  situation where the redirect is first removed then added back through
+  [middleman-s3_redirect](https://github.com/fredjean/middleman-s3_redirect).
+
 ## v3.0.13
 
 * Fails gracefully when the extension isn't activated
