@@ -120,7 +120,7 @@ module Middleman
       end
 
       def files_to_update
-        return resources.select { |r| r.local? } if s3_sync_options.force
+        return resources.select { |r| r.local? && !r.to_ignore? } if s3_sync_options.force
 
         @files_to_update ||= resources.select { |r| r.to_update? }
       end
