@@ -135,7 +135,7 @@ module Middleman
                       end
                     elsif local?
                       :new
-                    elsif redirect?
+                    elsif remote? && redirect?
                       :ignored
                     else
                       :deleted
@@ -151,7 +151,7 @@ module Middleman
       end
 
       def redirect?
-        s3_resource.metadata.has_key? 'x-amz-website-redirect-location'
+        s3_resource.metadata.has_key?('x-amz-website-redirect-location')
       end
 
       def directory?
