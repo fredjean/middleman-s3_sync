@@ -9,7 +9,7 @@ module Middleman
 
       def initialize(path)
         @path = path
-        @s3_resource = bucket.files.get(path) rescue nil
+        @s3_resource = bucket.files.head(path)
       end
 
       def remote_path
