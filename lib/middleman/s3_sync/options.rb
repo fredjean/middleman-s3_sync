@@ -15,6 +15,11 @@ module Middleman
         :prefer_gzip,
         :verbose
 
+      def initialize
+        # read config from .s3_sync on initialization
+        self.read_config
+      end
+
       def add_caching_policy(content_type, options)
         caching_policies[content_type.to_s] = BrowserCachePolicy.new(options)
       end
@@ -49,6 +54,28 @@ module Middleman
 
       def prefer_gzip
         (@prefer_gzip.nil? ? true : @prefer_gzip)
+      end
+
+      # Read config options from an IO stream and set them on `self`. Defaults
+      # to reading from the `.s3_sync` file in the MM project root if it exists.
+      #
+      # @param io [IO] an IO stream to read from
+      # @return [void]
+      def read_config(io = nil)
+        unless io
+          root_path = ::Middleman::Application.root
+          config_file_path = File.join(root_path, ".s3_sync")
+
+          # skip if config file does not exist
+          return unless File.exists?(config_file_path)
+
+          io = File.open(config_file_path, "r")
+        end
+
+        config = YAML.load(io)
+
+        self.aws_access_key_id = config["aws_access_key_id"] if config["aws_access_key_id"]
+        self.aws_secret_access_key = config["aws_secret_access_key"] if config["aws_secret_access_key"]
       end
 
       protected

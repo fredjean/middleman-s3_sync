@@ -101,4 +101,18 @@ describe Middleman::S3Sync::Options do
       policy.expires.should == CGI.rfc1123_date(expiration)
     end
   end
+
+  context "#read_config" do
+    let(:aws_access_key_id) { "foo" }
+    let(:aws_secret_access_key) { "bar" }
+    let(:config) { { "aws_access_key_id" => aws_access_key_id, "aws_secret_access_key" => aws_secret_access_key } }
+    let(:file) { StringIO.new(YAML.dump(config)) }
+
+    before do
+      options.read_config(file)
+    end
+
+    its(:aws_access_key_id) { should eq(aws_access_key_id) }
+    its(:aws_secret_access_key) { should eq(aws_secret_access_key) }
+  end
 end

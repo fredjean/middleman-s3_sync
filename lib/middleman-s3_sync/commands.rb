@@ -34,15 +34,6 @@ module Middleman
         shared_inst.s3_sync_options.bucket = options[:bucket] if options[:bucket]
         shared_inst.s3_sync_options.verbose = options[:verbose] if options[:verbose]
 
-        config_file = File.join(shared_inst.root_path, ".s3_sync")
-
-        if File.exist?(config_file)
-          config = YAML::load( File.open( config_file ) )
-
-          shared_inst.s3_sync_options.aws_secret_access_key = config["aws_secret_access_key"] if config["aws_secret_access_key"]
-          shared_inst.s3_sync_options.aws_access_key_id = config["aws_access_key_id"] if config["aws_access_key_id"]
-        end
-
         ::Middleman::S3Sync.sync
       end
     end
