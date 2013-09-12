@@ -13,6 +13,7 @@ module Middleman
         :build_dir,
         :force,
         :prefer_gzip,
+        :reduced_redundancy_storage,
         :verbose
 
       def initialize

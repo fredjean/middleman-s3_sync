@@ -36,6 +36,10 @@ module Middleman
           attributes[:content_encoding] = "gzip"
         end
 
+        if options.reduced_redundancy_storage
+          attributes[:storage_class] = 'REDUCED_REDUNDANCY'
+        end
+
         attributes
       end
       alias :attributes :to_h
@@ -61,6 +65,10 @@ module Middleman
 
         if options.prefer_gzip && gzipped
           s3_resource.content_encoding = "gzip"
+        end
+
+        if options.reduced_redundancy_storage
+          s3_resource.storage_class = 'REDUCED_REDUNDANCY'
         end
 
         s3_resource.save
