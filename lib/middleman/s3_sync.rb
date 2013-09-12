@@ -45,7 +45,7 @@ module Middleman
       end
 
       def resources
-        @resources ||= paths.pmap do |p|
+        @resources ||= paths.pmap(32) do |p|
           progress_bar.increment
           S3Sync::Resource.new(p)
         end
@@ -71,7 +71,7 @@ module Middleman
                              local_paths.reject! { |p| p =~ /\.gz$/ && File.exist?(p.gsub(/\.gz$/, '')) }
                            end
 
-                           local_paths.pmap { |p| p.gsub(/#{build_dir}\//, '') }
+                           local_paths.pmap(32) { |p| p.gsub(/#{build_dir}\//, '') }
                          end
       end
 
