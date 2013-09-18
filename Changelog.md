@@ -2,6 +2,15 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v3.0.17
+
+* Limits the number of concurrent threads used while processing the
+  resources and files. (#21)
+* Adds the option to use reduced redundancy storage for the bucket. (#8)
+* Adds the license to the gem specs. (#20)
+* Makes sure tha the .s3_sync file is read when the sync occures within
+  a build. (#22, #23)
+
 ## v3.0.16
 
 * Adds the ignore directory and redirects logic to the --force option as

@@ -34,14 +34,15 @@ You need to add the following code to your ```config.rb``` file:
 
 ```ruby
 activate :s3_sync do |s3_sync|
-  s3_sync.bucket                = 'my.bucket.com' # The name of the S3 bucket you are targetting. This is globally unique.
-  s3_sync.region                = 'us-west-1'     # The AWS region for your bucket.
-  s3_sync.aws_access_key_id     = 'AWS KEY ID'
-  s3_sync.aws_secret_access_key = 'AWS SECRET KEY'
-  s3_sync.delete                = false # We delete stray files by default.
-  s3_sync.after_build           = false # We chain after the build step by default. This may not be your desired behavior...
-  s3_sync.prefer_gzip           = true
-end
+  s3_sync.bucket                     = 'my.bucket.com' # The name of the S3 bucket you are targetting. This is globally unique.
+  s3_sync.region                     = 'us-west-1'     # The AWS region for your bucket.
+  s3_sync.aws_access_key_id          = 'AWS KEY ID'
+  s3_sync.aws_secret_access_key      = 'AWS SECRET KEY'
+  s3_sync.delete                     = false # We delete stray files by default.
+  s3_sync.after_build                = false # We chain after the build step by default. This may not be your desired behavior...
+  s3_sync.prefer_gzip                = true
+  s3_sync.reduced_redundancy_storage = false
+  end
 ```
 
 You can then start synchronizing files with S3 through ```middleman s3_sync```.
@@ -50,13 +51,14 @@ You can then start synchronizing files with S3 through ```middleman s3_sync```.
 
 The following defaults apply to the configuration items:
 
-| Setting               | Default                            |
-| -----------------     | ----------------------------       |
-| aws_access_key_id     | ```ENV['AWS_ACCESS_KEY_ID```       |
-| aws_secret_access_key | ```ENV['AWS_SECRET_ACCESS_KEY']``` |
-| delete                | ```true```                         |
-| after_build           | ```false```                        |
-| prefer_gzip           | ```true```                         |
+| Setting                    | Default                            |
+| -----------------          | ----------------------------       |
+| aws_access_key_id          | ```ENV['AWS_ACCESS_KEY_ID```       |
+| aws_secret_access_key      | ```ENV['AWS_SECRET_ACCESS_KEY']``` |
+| delete                     | ```true```                         |
+| after_build                | ```false```                        |
+| prefer_gzip                | ```true```                         |
+| reduced_redundancy_storage | ```false```                        |
 
 You do not need to specify the settings that match the defaults. This
 simplify the configuration of the extension:
