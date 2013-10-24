@@ -59,7 +59,7 @@ module Middleman
       end
 
       def path_style
-        (@path_style.nil? ? false : @path_style)
+        (@path_style.nil? ? true : @path_style)
       end
 
       # Read config options from an IO stream and set them on `self`. Defaults
