@@ -9,6 +9,8 @@ require 'middleman/s3_sync/resource'
 require 'middleman-s3_sync/extension'
 require 'ruby-progressbar'
 
+Fog::Logger[:warning] = nil
+
 module Middleman
   module S3Sync
     class << self
