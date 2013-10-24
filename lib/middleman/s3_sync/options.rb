@@ -14,6 +14,7 @@ module Middleman
         :force,
         :prefer_gzip,
         :reduced_redundancy_storage,
+        :path_style,
         :verbose
 
       def initialize
@@ -55,6 +56,10 @@ module Middleman
 
       def prefer_gzip
         (@prefer_gzip.nil? ? true : @prefer_gzip)
+      end
+
+      def path_style
+        (@path_style.nil? ? false : @path_style)
       end
 
       # Read config options from an IO stream and set them on `self`. Defaults

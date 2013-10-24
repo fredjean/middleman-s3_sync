@@ -40,7 +40,8 @@ module Middleman
           :provider => 'AWS',
           :aws_access_key_id => s3_sync_options.aws_access_key_id,
           :aws_secret_access_key => s3_sync_options.aws_secret_access_key,
-          :region => s3_sync_options.region
+          :region => s3_sync_options.region,
+          :path_style => s3_sync_options.path_style
         })
       end
 
