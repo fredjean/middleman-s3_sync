@@ -93,7 +93,6 @@ module Middleman
         if options.verbose
           say_status "Original:    #{original_path.white}"
           say_status "Local Path:  #{local_path.white}"
-          say_status "remote md5:  #{remote_md5.white}"
           say_status "content md5: #{content_md5.white}"
         end
         bucket.files.create(to_h)
