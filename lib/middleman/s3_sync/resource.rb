@@ -21,7 +21,6 @@ module Middleman
         attributes = {
           :key => key,
           :body => body,
-          :public => true,
           :acl => options.acl,
           :content_type => content_type,
           CONTENT_MD5_KEY => content_md5
@@ -53,7 +52,6 @@ module Middleman
           say_status "content md5: #{content_md5.white}"
         end
         s3_resource.body = body
-        s3_resource.public = true
         s3_resource.acl = options.acl
         s3_resource.content_type = content_type
         s3_resource.metadata = { CONTENT_MD5_KEY => content_md5 }
