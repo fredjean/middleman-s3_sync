@@ -3,6 +3,7 @@ module Middleman
     class Options
       attr_accessor \
         :prefix,
+        :acl,
         :bucket,
         :region,
         :aws_access_key_id,
@@ -20,6 +21,10 @@ module Middleman
       def initialize
         # read config from .s3_sync on initialization
         self.read_config
+      end
+
+      def acl
+        @acl || 'public-read'
       end
 
       def add_caching_policy(content_type, options)
