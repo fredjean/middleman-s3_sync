@@ -9,6 +9,7 @@ module Middleman
         :aws_secret_access_key,
         :after_build,
         :delete,
+        :encryption,
         :existing_remote_file,
         :build_dir,
         :force,
@@ -44,6 +45,10 @@ module Middleman
 
       def aws_secret_access_key
         @aws_secret_access_key || ENV['AWS_SECRET_ACCESS_KEY']
+      end
+
+      def encryption
+        @encryption.nil? ? false : @encryption
       end
 
       def delete
