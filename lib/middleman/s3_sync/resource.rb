@@ -39,6 +39,10 @@ module Middleman
           attributes[:storage_class] = 'REDUCED_REDUNDANCY'
         end
 
+        if options.encryption
+          attributes[:encryption] = 'AES256'
+        end
+
         attributes
       end
       alias :attributes :to_h
@@ -67,6 +71,10 @@ module Middleman
 
         if options.reduced_redundancy_storage
           s3_resource.storage_class = 'REDUCED_REDUNDANCY'
+        end
+
+        if options.encryption
+          s3_resource.encryption = 'AES256'
         end
 
         s3_resource.save
