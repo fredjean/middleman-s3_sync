@@ -13,11 +13,14 @@ module Middleman
         app.send :include, Helpers
 
         app.after_configuration do |config|
-          options.build_dir ||= build_dir
-        end
 
-        app.after_build do |builder|
-          ::Middleman::S3Sync.sync if options.after_build
+          # Define the after_build step after during configuration so
+          # that it's pushed to the end of the callback chain
+          app.after_build do |builder|
+            ::Middleman::S3Sync.sync if options.after_build
+          end
+
+          options.build_dir ||= build_dir
         end
       end
       alias :included :registered
