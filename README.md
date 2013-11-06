@@ -43,7 +43,9 @@ activate :s3_sync do |s3_sync|
   s3_sync.prefer_gzip                = true
   s3_sync.path_style                 = true
   s3_sync.reduced_redundancy_storage = false
-  end
+  s3_sync.acl                        = 'public-read'
+  s3_sync.encryption                 = false
+end
 ```
 
 You can then start synchronizing files with S3 through ```middleman s3_sync```.
@@ -61,6 +63,8 @@ The following defaults apply to the configuration items:
 | prefer_gzip                | ```true```                         |
 | reduced_redundancy_storage | ```false```                        |
 | path_style                 | ```true```                         |
+| encryption                 | ```false```                        |
+| acl                        | ```'public-read'```                |
 
 You do not need to specify the settings that match the defaults. This
 simplify the configuration of the extension:
@@ -186,6 +190,31 @@ are (I'm looking at you Chrome!). Setting the `Cache-Control` or
 `Expires` headers are not a guarrantie that the browsers and the proxies
 that stand between them and your content will behave the way you want
 them to. YMMV.
+
+### ACLs
+
+```middleman-s3_sync``` will set the resources's ACL to ```public-read``` by default. You
+can specificy a different ACL via the ```acl``` configuration option.
+The valid values are:
+
+* ```private```
+* ```public-read```
+* ```public-read-write```
+* ```authenticated-read```
+* ```bucket-owner-read```
+* ```bucket-owner-full-control```
+
+The full values and their semantics are [documented on AWS's
+documentation
+site](http://docs.aws.amazon.com/AmazonS3/latest/dev/ACLOverview.html#CannedACL).
+
+### Encryption
+
+You can ask Amazon to encrypt your files at rest by setting the
+```encryption``` option to true. [Server side encryption is documented
+on the AWS documentation
+site](http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html)
+.
 
 ### GZipped Content Encoding
 
