@@ -5,6 +5,7 @@ module Middleman
         :prefix,
         :acl,
         :bucket,
+        :bucket_folder,
         :region,
         :aws_access_key_id,
         :aws_secret_access_key,
@@ -70,6 +71,10 @@ module Middleman
 
       def path_style
         (@path_style.nil? ? true : @path_style)
+      end
+
+      def bucket_folder
+        @bucket_folder.nil? ? "" : "#{@bucket_folder}/"
       end
 
       # Read config options from an IO stream and set them on `self`. Defaults
