@@ -19,7 +19,7 @@ module Middleman
 
       def to_h
         attributes = {
-          :key => key,
+          :key => "#{options.bucket_folder}#{key}",
           :body => body,
           :acl => options.acl,
           :content_type => content_type,
