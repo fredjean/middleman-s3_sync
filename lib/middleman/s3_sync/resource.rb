@@ -20,7 +20,6 @@ module Middleman
       def to_h
         attributes = {
           :key => key,
-          :body => body,
           :acl => options.acl,
           :content_type => content_type,
           CONTENT_MD5_KEY => content_md5
@@ -48,36 +47,39 @@ module Middleman
       alias :attributes :to_h
 
       def update!
-        say_status "Updating".blue + " #{path}#{ gzipped ? ' (gzipped)'.white : ''}"
-        if options.verbose
-          say_status "Original:    #{original_path.white}"
-          say_status "Local Path:  #{local_path.white}"
-          say_status "remote md5:  #{remote_md5.white}"
-          say_status "content md5: #{content_md5.white}"
-        end
-        s3_resource.body = body
-        s3_resource.acl = options.acl
-        s3_resource.content_type = content_type
-        s3_resource.metadata = { CONTENT_MD5_KEY => content_md5 }
+        body { |body|
+          say_status "Updating".blue + " #{path}#{ gzipped ? ' (gzipped)'.white : ''}"
+          if options.verbose
+            say_status "Original:    #{original_path.white}"
+            say_status "Local Path:  #{local_path.white}"
+            say_status "remote md5:  #{remote_md5.white}"
+            say_status "content md5: #{content_md5.white}"
+          end
+          s3_resource.body = body
 
-        if caching_policy
-          s3_resource.cache_control = caching_policy.cache_control
-          s3_resource.expires = caching_policy.expires
-        end
+          s3_resource.acl = options.acl
+          s3_resource.content_type = content_type
+          s3_resource.metadata = { CONTENT_MD5_KEY => content_md5 }
 
-        if options.prefer_gzip && gzipped
-          s3_resource.content_encoding = "gzip"
-        end
+          if caching_policy
+            s3_resource.cache_control = caching_policy.cache_control
+            s3_resource.expires = caching_policy.expires
+          end
 
-        if options.reduced_redundancy_storage
-          s3_resource.storage_class = 'REDUCED_REDUNDANCY'
-        end
+          if options.prefer_gzip && gzipped
+            s3_resource.content_encoding = "gzip"
+          end
 
-        if options.encryption
-          s3_resource.encryption = 'AES256'
-        end
+          if options.reduced_redundancy_storage
+            s3_resource.storage_class = 'REDUCED_REDUNDANCY'
+          end
 
-        s3_resource.save
+          if options.encryption
+            s3_resource.encryption = 'AES256'
+          end
+
+          s3_resource.save
+        }
       end
 
       def local_path
@@ -101,7 +103,9 @@ module Middleman
           say_status "Local Path:  #{local_path.white}"
           say_status "content md5: #{content_md5.white}"
         end
-        bucket.files.create(to_h)
+        body { |body|
+          bucket.files.create(to_h.merge(:body => body))
+        }
       end
 
       def ignore!
@@ -133,8 +137,8 @@ module Middleman
         status == :ignored
       end
 
-      def body
-        @body = File.open(local_path)
+      def body(&block)
+        File.open(local_path, &block)
       end
 
       def status
