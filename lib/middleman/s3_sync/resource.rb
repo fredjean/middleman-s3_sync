@@ -143,7 +143,11 @@ module Middleman
 
       def status
         @status ||= if directory?
-                      :ignored
+                      if remote?
+                        :deleted
+                      else
+                        :ignored
+                      end
                     elsif local? && remote?
                       if content_md5 != remote_md5
                         :updated
