@@ -231,7 +231,7 @@ compressed version of the resource.
 I used Middleman Sync as a template for building a Middleman extension.
 The code is well structured and easy to understand and it was easy to
 extend it to add my synchronization code. My gratitude goes to @karlfreeman
-and is work on Middleman sync.
+and his work on Middleman sync.
 
 Many thanks to [Gnip](http://gnip.com) and [dojo4](http://dojo4.com) for
 supporting and sponsoring work on middleman-s3_sync.
