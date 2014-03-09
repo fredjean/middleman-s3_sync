@@ -6,7 +6,7 @@ module Middleman
       CONTENT_MD5_KEY = 'x-amz-meta-content-md5'
 
       include Status
-      
+
       def s3_resource
         @full_s3_resource || @partial_s3_resource
       end
@@ -135,7 +135,7 @@ module Middleman
       def to_create?
         status == :new
       end
-      
+
       def alternate_encoding?
         status == :alternate_encoding
       end
@@ -170,12 +170,14 @@ module Middleman
                         if !gzipped
                           # we're not gzipped, object hashes being different indicates updated content
                           :updated
-                        elsif (local_content_md5 != remote_content_md5)
+                        elsif local_content_md5 != remote_content_md5
                           # we're gzipped, so we checked the content MD5, and it also changed
+                          :updated
+                        elsif !encoding_match?
                           :updated
                         else
                           # we're gzipped, the object hashes differ, but the content hashes are equal
-                          # this means the gzipped bits changed while the compressed bits did not
+                          # this means the gzipped bits changed while the original bits did not
                           # what's more, we spent a HEAD request to find out
                           :alternate_encoding
                         end
@@ -188,7 +190,7 @@ module Middleman
                       :deleted
                     end
       end
-      
+
       def local?
         File.exist?(local_path)
       end
@@ -208,11 +210,15 @@ module Middleman
       def relative_path
         @relative_path ||= local_path.gsub(/#{build_dir}/, '')
       end
-      
+
       def remote_object_md5
         s3_resource.etag
       end
-      
+
+      def encoding_match?
+        (gzipped && full_s3_resource.content_encoding == 'gzip') || (!gzipped && !full_s3_resource.content_encoding )
+      end
+
       def remote_content_md5
         full_s3_resource.metadata[CONTENT_MD5_KEY]
       end
@@ -220,7 +226,7 @@ module Middleman
       def local_object_md5
         @local_object_md5 ||= Digest::MD5.hexdigest(File.read(local_path))
       end
-      
+
       def local_content_md5
         @local_content_md5 ||= Digest::MD5.hexdigest(File.read(original_path))
       end
