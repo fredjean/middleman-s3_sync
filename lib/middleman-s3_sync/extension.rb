@@ -8,7 +8,8 @@ module Middleman
         options = Options.new
         yield options if block_given?
 
-        @@options = options
+        @options = options
+        @app = app
 
         app.send :include, Helpers
 
@@ -26,7 +27,15 @@ module Middleman
       alias :included :registered
 
       def s3_sync_options
-        @@options
+        @options
+      end
+
+      def app
+        @app
+      end
+
+      def sitemap
+        @sitemap ||= app.server.inst.sitemap
       end
 
       module Helpers

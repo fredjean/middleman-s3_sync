@@ -255,6 +255,10 @@ module Middleman
       def options
         Middleman::S3Sync.s3_sync_options
       end
+
+      def sitemap
+        Middleman::S3Sync.sitemap
+      end
     end
   end
 end

@@ -77,7 +77,7 @@ module Middleman
       def remote_paths
         @remote_paths ||= bucket_files.map(&:key)
       end
-      
+
       def bucket_files
         @bucket_files ||= [].tap { |files|
           bucket.files.each { |f|
