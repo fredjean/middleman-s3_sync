@@ -29,7 +29,7 @@ module Middleman
       end
 
       def bucket
-        @bucket ||= connection.directories.get(s3_sync_options.bucket)
+        @bucket ||= connection.directories.get(s3_sync_options.bucket, :prefix => s3_sync_options.prefix)
       end
 
       protected
