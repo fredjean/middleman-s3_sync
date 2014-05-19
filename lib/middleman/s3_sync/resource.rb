@@ -9,11 +9,11 @@ module Middleman
 
       def initialize(path)
         @path = path
-        @s3_resource = bucket.files.head(path)
+        @s3_resource = bucket.files.head("#{options.prefix}#{path}")
       end
 
       def remote_path
-        s3_resource ? s3_resource.key : path
+        s3_resource ? s3_resource.key : "#{options.prefix}#{path}"
       end
       alias :key :remote_path
 
