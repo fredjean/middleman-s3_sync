@@ -19,7 +19,7 @@ module Middleman
 
       def to_h
         attributes = {
-          :key => "#{options.bucket_folder}#{key}",
+          :key => "#{key}",
           :body => body,
           :acl => options.acl,
           :content_type => content_type,
@@ -86,7 +86,7 @@ module Middleman
           @gzipped = true
           local_path += ".gz"
         end
-        local_path
+        local_path.sub(options.prefix, '')
       end
 
       def destroy!

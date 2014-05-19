@@ -70,7 +70,7 @@ module Middleman
                              local_paths.reject! { |p| p =~ /\.gz$/ && File.exist?(p.gsub(/\.gz$/, '')) }
                            end
 
-                           local_paths.pmap(32) { |p| p.gsub(/#{build_dir}\//, '') }
+                           local_paths.pmap(32) { |p| p.gsub(/#{build_dir}\//, s3_sync_options.prefix) }
                          end
       end
 
@@ -134,4 +134,3 @@ module Middleman
     end
   end
 end
-
