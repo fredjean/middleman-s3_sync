@@ -39,7 +39,7 @@ activate :s3_sync do |s3_sync|
   s3_sync.aws_access_key_id          = 'AWS KEY ID'
   s3_sync.aws_secret_access_key      = 'AWS SECRET KEY'
   s3_sync.delete                     = false # We delete stray files by default.
-  s3_sync.after_build                = false # We chain after the build step by default. This may not be your desired behavior...
+  s3_sync.after_build                = false # We do not chain after the build step by default. 
   s3_sync.prefer_gzip                = true
   s3_sync.path_style                 = true
   s3_sync.reduced_redundancy_storage = false
@@ -100,6 +100,8 @@ A sample ```.s3_sync``` file is included at the root of this repo.
 You can also pass the credentials through environment variables. They
 map to the following values:
 
+| Setting               | Environment Variable               |
+| --------------------- | ---------------------------------- |
 | aws_access_key_id     | ```ENV['AWS_ACCESS_KEY_ID```       |
 | aws_secret_access_key | ```ENV['AWS_SECRET_ACCESS_KEY']``` |
 
@@ -229,7 +231,7 @@ compressed version of the resource.
 I used Middleman Sync as a template for building a Middleman extension.
 The code is well structured and easy to understand and it was easy to
 extend it to add my synchronization code. My gratitude goes to @karlfreeman
-and is work on Middleman sync.
+and his work on Middleman sync.
 
 Many thanks to [Gnip](http://gnip.com) and [dojo4](http://dojo4.com) for
 supporting and sponsoring work on middleman-s3_sync.

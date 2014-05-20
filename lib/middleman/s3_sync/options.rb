@@ -44,8 +44,16 @@ module Middleman
         @caching_policies ||= Map.new
       end
 
+      def aws_access_key_id=(aws_access_key_id)
+        @aws_access_key_id = aws_access_key_id if aws_access_key_id
+      end
+
       def aws_access_key_id
         @aws_access_key_id || ENV['AWS_ACCESS_KEY_ID']
+      end
+
+      def aws_secret_access_key=(aws_secret_access_key)
+        @aws_secret_access_key = aws_secret_access_key if aws_secret_access_key
       end
 
       def aws_secret_access_key

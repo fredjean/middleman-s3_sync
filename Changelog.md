@@ -2,6 +2,12 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v3.0.22
+
+* Fixes a bug where files were not closed, leading to an exhaustion of 
+  file handles with large web sites.
+* Internal fixes.
+
 ## v3.0.17
 
 * Limits the number of concurrent threads used while processing the

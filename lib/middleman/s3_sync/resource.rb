@@ -7,23 +7,31 @@ module Middleman
 
       include Status
 
-      def initialize(path)
+      def s3_resource
+        @full_s3_resource || @partial_s3_resource
+      end
+
+      # S3 resource as returned by a HEAD request
+      def full_s3_resource
+        @full_s3_resource ||= bucket.files.head(path)
+      end
+
+      def initialize(path, partial_s3_resource)
         @path = path
         @s3_resource = bucket.files.head("#{options.prefix}#{path}")
       end
 
       def remote_path
-        s3_resource ? s3_resource.key : "#{options.prefix}#{path}"
+        s3_resource ? s3_resource.key : path
       end
       alias :key :remote_path
 
       def to_h
         attributes = {
-          :key => "#{key}",
-          :body => body,
+          :key => key,
           :acl => options.acl,
           :content_type => content_type,
-          CONTENT_MD5_KEY => content_md5
+          CONTENT_MD5_KEY => local_content_md5
         }
 
         if caching_policy
@@ -48,36 +56,39 @@ module Middleman
       alias :attributes :to_h
 
       def update!
-        say_status "Updating".blue + " #{path}#{ gzipped ? ' (gzipped)'.white : ''}"
-        if options.verbose
-          say_status "Original:    #{original_path.white}"
-          say_status "Local Path:  #{local_path.white}"
-          say_status "remote md5:  #{remote_md5.white}"
-          say_status "content md5: #{content_md5.white}"
-        end
-        s3_resource.body = body
-        s3_resource.acl = options.acl
-        s3_resource.content_type = content_type
-        s3_resource.metadata = { CONTENT_MD5_KEY => content_md5 }
+        body { |body|
+          say_status "Updating".blue + " #{path}#{ gzipped ? ' (gzipped)'.white : ''}"
+          if options.verbose
+            say_status "Original:    #{original_path.white}"
+            say_status "Local Path:  #{local_path.white}"
+            say_status "remote md5:  #{remote_object_md5.white} / #{remote_content_md5}"
+            say_status "content md5: #{local_object_md5.white} / #{local_content_md5}"
+          end
+          s3_resource.body = body
 
-        if caching_policy
-          s3_resource.cache_control = caching_policy.cache_control
-          s3_resource.expires = caching_policy.expires
-        end
+          s3_resource.acl = options.acl
+          s3_resource.content_type = content_type
+          s3_resource.metadata = { CONTENT_MD5_KEY => local_content_md5 }
 
-        if options.prefer_gzip && gzipped
-          s3_resource.content_encoding = "gzip"
-        end
+          if caching_policy
+            s3_resource.cache_control = caching_policy.cache_control
+            s3_resource.expires = caching_policy.expires
+          end
 
-        if options.reduced_redundancy_storage
-          s3_resource.storage_class = 'REDUCED_REDUNDANCY'
-        end
+          if options.prefer_gzip && gzipped
+            s3_resource.content_encoding = "gzip"
+          end
 
-        if options.encryption
-          s3_resource.encryption = 'AES256'
-        end
+          if options.reduced_redundancy_storage
+            s3_resource.storage_class = 'REDUCED_REDUNDANCY'
+          end
 
-        s3_resource.save
+          if options.encryption
+            s3_resource.encryption = 'AES256'
+          end
+
+          s3_resource.save
+        }
       end
 
       def local_path
@@ -91,7 +102,7 @@ module Middleman
 
       def destroy!
         say_status "Deleting".red + " #{path}"
-        s3_resource.destroy
+        bucket.files.destroy remote_path
       end
 
       def create!
@@ -99,9 +110,11 @@ module Middleman
         if options.verbose
           say_status "Original:    #{original_path.white}"
           say_status "Local Path:  #{local_path.white}"
-          say_status "content md5: #{content_md5.white}"
+          say_status "content md5: #{local_content_md5.white}"
         end
-        bucket.files.create(to_h)
+        body { |body|
+          bucket.files.create(to_h.merge(:body => body))
+        }
       end
 
       def ignore!
@@ -109,6 +122,8 @@ module Middleman
                    :redirect
                  elsif directory?
                    :directory
+                 elsif alternate_encoding?
+                   'alternate encoding'
                  end
         say_status "Ignoring".yellow + " #{path} #{ reason ? "(#{reason})".white : "" }"
       end
@@ -121,6 +136,10 @@ module Middleman
         status == :new
       end
 
+      def alternate_encoding?
+        status == :alternate_encoding
+      end
+
       def identical?
         status == :identical
       end
@@ -130,21 +149,38 @@ module Middleman
       end
 
       def to_ignore?
-        status == :ignored
+        status == :ignored || status == :alternate_encoding
       end
 
-      def body
-        @body = File.open(local_path)
+      def body(&block)
+        File.open(local_path, &block)
       end
 
       def status
         @status ||= if directory?
-                      :ignored
-                    elsif local? && remote?
-                      if content_md5 != remote_md5
-                        :updated
+                      if remote?
+                        :deleted
                       else
+                        :ignored
+                      end
+                    elsif local? && remote?
+                      if local_object_md5 == remote_object_md5
                         :identical
+                      else
+                        if !gzipped
+                          # we're not gzipped, object hashes being different indicates updated content
+                          :updated
+                        elsif local_content_md5 != remote_content_md5
+                          # we're gzipped, so we checked the content MD5, and it also changed
+                          :updated
+                        elsif !encoding_match?
+                          :updated
+                        else
+                          # we're gzipped, the object hashes differ, but the content hashes are equal
+                          # this means the gzipped bits changed while the original bits did not
+                          # what's more, we spent a HEAD request to find out
+                          :alternate_encoding
+                        end
                       end
                     elsif local?
                       :new
@@ -164,7 +200,7 @@ module Middleman
       end
 
       def redirect?
-        s3_resource.metadata.has_key?('x-amz-website-redirect-location')
+        full_s3_resource.metadata.has_key?('x-amz-website-redirect-location')
       end
 
       def directory?
@@ -175,12 +211,24 @@ module Middleman
         @relative_path ||= local_path.gsub(/#{build_dir}/, '')
       end
 
-      def remote_md5
-        s3_resource.metadata[CONTENT_MD5_KEY] || s3_resource.etag
+      def remote_object_md5
+        s3_resource.etag
       end
 
-      def content_md5
-        @content_md5 ||= Digest::MD5.hexdigest(File.read(original_path))
+      def encoding_match?
+        (gzipped && full_s3_resource.content_encoding == 'gzip') || (!gzipped && !full_s3_resource.content_encoding )
+      end
+
+      def remote_content_md5
+        full_s3_resource.metadata[CONTENT_MD5_KEY]
+      end
+
+      def local_object_md5
+        @local_object_md5 ||= Digest::MD5.hexdigest(File.read(local_path))
+      end
+
+      def local_content_md5
+        @local_content_md5 ||= Digest::MD5.hexdigest(File.read(original_path))
       end
 
       def original_path

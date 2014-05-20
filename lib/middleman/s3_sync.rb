@@ -75,7 +75,15 @@ module Middleman
       end
 
       def remote_paths
-        @remote_paths ||= bucket.files.map{ |f| f.key }
+        @remote_paths ||= bucket_files.map(&:key)
+      end
+      
+      def bucket_files
+        @bucket_files ||= [].tap { |files|
+          bucket.files.each { |f|
+            files << f
+          }
+        }
       end
 
       def create_resources
@@ -134,3 +142,4 @@ module Middleman
     end
   end
 end
+
