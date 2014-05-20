@@ -46,7 +46,7 @@ module Middleman
       def resources
         @resources ||= paths.pmap(32) do |p|
           progress_bar.increment
-          S3Sync::Resource.new(p, bucket_files.find { |f| f.key == p }).tap(&:status)
+          S3Sync::Resource.new(p, bucket_files.find { |f| f.key == "#{s3_sync_options.prefix}#{p}" }).tap(&:status)
         end
       end
 
