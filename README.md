@@ -39,12 +39,13 @@ activate :s3_sync do |s3_sync|
   s3_sync.aws_access_key_id          = 'AWS KEY ID'
   s3_sync.aws_secret_access_key      = 'AWS SECRET KEY'
   s3_sync.delete                     = false # We delete stray files by default.
-  s3_sync.after_build                = false # We do not chain after the build step by default. 
+  s3_sync.after_build                = false # We do not chain after the build step by default.
   s3_sync.prefer_gzip                = true
   s3_sync.path_style                 = true
   s3_sync.reduced_redundancy_storage = false
   s3_sync.acl                        = 'public-read'
   s3_sync.encryption                 = false
+  s3_sync.prefix                     = ''
 end
 ```
 
@@ -121,6 +122,18 @@ You can now override the destination bucket using the --bucket switch.
 The command is:
 
     $ middleman s3_sync --bucket=my.new.bucket
+
+## Pushing to a folder within a bucket
+
+You can push to a folder within an S3 bucket by adding using the prefix
+option in the config block:
+
+```ruby
+activate :s3_sync do |s3_sync|
+  # ...
+  s3_sync.prefix = '/prefix'
+end
+```
 
 ## HTTP Caching
 
