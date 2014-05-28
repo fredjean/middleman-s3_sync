@@ -39,12 +39,14 @@ activate :s3_sync do |s3_sync|
   s3_sync.aws_access_key_id          = 'AWS KEY ID'
   s3_sync.aws_secret_access_key      = 'AWS SECRET KEY'
   s3_sync.delete                     = false # We delete stray files by default.
-  s3_sync.after_build                = false # We do not chain after the build step by default. 
+  s3_sync.after_build                = false # We do not chain after the build step by default.
   s3_sync.prefer_gzip                = true
   s3_sync.path_style                 = true
   s3_sync.reduced_redundancy_storage = false
   s3_sync.acl                        = 'public-read'
   s3_sync.encryption                 = false
+  s3_sync.prefix                     = ''
+  s3_sync.version_bucket             = false
 end
 ```
 
@@ -65,6 +67,7 @@ The following defaults apply to the configuration items:
 | path_style                 | ```true```                         |
 | encryption                 | ```false```                        |
 | acl                        | ```'public-read'```                |
+| version_bucket             | ```false```                        |
 
 You do not need to specify the settings that match the defaults. This
 simplify the configuration of the extension:
@@ -121,6 +124,27 @@ You can now override the destination bucket using the --bucket switch.
 The command is:
 
     $ middleman s3_sync --bucket=my.new.bucket
+
+## Pushing to a folder within a bucket
+
+You can push to a folder within an S3 bucket by adding using the prefix
+option in the config block:
+
+```ruby
+activate :s3_sync do |s3_sync|
+  # ...
+  s3_sync.prefix = '/prefix'
+end
+```
+
+## Bucket Versioning
+
+You can enable bucket versioning by setting the ```version_bucket```
+setting to true within the bucket configuration.
+
+Versioning is enabled at the bucket level, not at the object level.
+
+You can [find out more about versioning here](https://aws.amazon.com/about-aws/whats-new/2010/02/08/versioning-feature-for-amazon-s3-now-available/).
 
 ## HTTP Caching
 
