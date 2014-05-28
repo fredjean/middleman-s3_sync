@@ -46,6 +46,7 @@ activate :s3_sync do |s3_sync|
   s3_sync.acl                        = 'public-read'
   s3_sync.encryption                 = false
   s3_sync.prefix                     = ''
+  s3_sync.version_bucket             = false
 end
 ```
 
@@ -66,6 +67,7 @@ The following defaults apply to the configuration items:
 | path_style                 | ```true```                         |
 | encryption                 | ```false```                        |
 | acl                        | ```'public-read'```                |
+| version_bucket             | ```false```                        |
 
 You do not need to specify the settings that match the defaults. This
 simplify the configuration of the extension:
@@ -134,6 +136,15 @@ activate :s3_sync do |s3_sync|
   s3_sync.prefix = '/prefix'
 end
 ```
+
+## Bucket Versioning
+
+You can enable bucket versioning by setting the ```version_bucket```
+setting to true within the bucket configuration.
+
+Versioning is enabled at the bucket level, not at the object level.
+
+You can [find out more about versioning here](https://aws.amazon.com/about-aws/whats-new/2010/02/08/versioning-feature-for-amazon-s3-now-available/).
 
 ## HTTP Caching
 
