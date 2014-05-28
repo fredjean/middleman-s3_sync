@@ -22,6 +22,8 @@ module Middleman
 
         say_status "\nReady to apply updates to #{s3_sync_options.bucket}."
 
+        update_bucket_versioning
+
         ignore_resources
         create_resources
         update_resources
@@ -33,6 +35,10 @@ module Middleman
       end
 
       protected
+      def update_bucket_versioning
+        connection.put_bucket_versioning(s3_sync_options.bucket, "Enabled") if s3_sync_options.version_bucket
+      end
+
       def connection
         @connection ||= Fog::Storage.new({
           :provider => 'AWS',

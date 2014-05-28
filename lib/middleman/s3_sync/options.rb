@@ -17,6 +17,7 @@ module Middleman
         :prefer_gzip,
         :reduced_redundancy_storage,
         :path_style,
+        :version_bucket,
         :verbose
 
       def initialize
@@ -82,6 +83,10 @@ module Middleman
 
       def prefix
         @prefix.nil? ? "" : "#{@prefix}/"
+      end
+
+      def version_bucket
+        @version_bucket.nil? ? false : @version_bucket
       end
 
       # Read config options from an IO stream and set them on `self`. Defaults
