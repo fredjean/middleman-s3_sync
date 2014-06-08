@@ -38,13 +38,13 @@ class S3SyncExtension < ::Middleman::Extension
     ::Middleman::S3Sync.sync if options.after_build
   end
 
-  helpers do
+  module ClassMethods
     def default_caching_policy(policy = {})
-
+      ::Middleman::S3Sync::BrowserCachePolicy.add_caching_policy(:default, policy)
     end
 
     def caching_policy(content_type, policy = {})
-
+      ::Middleman::S3Sync::BrowserCachePolicy.add_caching_policy(content_type, policy)
     end
   end
 

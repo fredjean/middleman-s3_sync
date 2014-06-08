@@ -16,9 +16,13 @@ module Middleman
         @full_s3_resource ||= bucket.files.head("#{options.prefix}#{path}")
       end
 
-      def initialize(path, partial_s3_resource)
-        @path = path
+      def initialize(local_resource, partial_s3_resource)
+        @local_resource = local_resource
         @partial_s3_resource = partial_s3_resource
+      end
+
+      def path
+        @local_resource.path
       end
 
       def remote_path
@@ -240,7 +244,7 @@ module Middleman
       end
 
       def caching_policy
-        @caching_policy ||= options.caching_policy_for(content_type)
+        @caching_policy ||= BrowserCachePolicy.caching_policy_for(content_type)
       end
 
       protected
