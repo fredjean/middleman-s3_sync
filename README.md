@@ -169,7 +169,7 @@ As a result, the following ```Cache-Control``` header would be set to ```max-age
 
 ### Setting a Default Policy
 
-You can set the default policy by passing an options hash to ```default_caching_policy``` in your ```config.rb``` file:
+You can set the default policy by passing an options hash to ```default_caching_policy``` in your ```config.rb``` file after the ```activate :s3_sync ... end``` block:
 
 ```ruby
 default_caching_policy max_age:(60 * 60 * 24 * 365)
