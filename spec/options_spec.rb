@@ -4,13 +4,13 @@ require 'middleman/s3_sync/options'
 describe Middleman::S3Sync::Options do
   subject(:options) { Middleman::S3Sync::Options.new }
 
-  its(:delete) { should be_true }
-  its(:after_build) { should be_false }
-  its(:prefer_gzip) { should be_true }
-  its(:aws_secret_access_key) { should == ENV['AWS_SECRET_ACCESS_KEY'] }
-  its(:aws_access_key_id) { should == ENV['AWS_ACCESS_KEY_ID'] }
-  its(:caching_policies) { should be_empty }
-  its(:default_caching_policy) { should be_nil }
+  its(:delete) { is_expected.to eq(true) }
+  its(:after_build) { is_expected.to eq(false)}
+  its(:prefer_gzip) { is_expected.to eq(true) }
+  its(:aws_secret_access_key) { is_expected.to eq(ENV['AWS_SECRET_ACCESS_KEY']) }
+  its(:aws_access_key_id) { is_expected.to eq(ENV['AWS_ACCESS_KEY_ID']) }
+  its(:caching_policies) { is_expected.to be_empty }
+  its(:default_caching_policy) { is_expected.to be_nil }
 
   context "browser caching policy" do
     let(:policy) { options.default_caching_policy }
