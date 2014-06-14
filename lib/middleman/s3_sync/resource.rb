@@ -164,7 +164,9 @@ module Middleman
                         :ignored
                       end
                     elsif local? && remote?
-                      if local_object_md5 == remote_object_md5
+                      if options.force
+                        :updated
+                      elsif local_object_md5 == remote_object_md5
                         :identical
                       else
                         if !gzipped
