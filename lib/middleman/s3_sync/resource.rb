@@ -170,10 +170,8 @@ module Middleman
                         if !gzipped
                           # we're not gzipped, object hashes being different indicates updated content
                           :updated
-                        elsif local_content_md5 != remote_content_md5
+                        elsif !encoding_match? || local_content_md5 != remote_content_md5
                           # we're gzipped, so we checked the content MD5, and it also changed
-                          :updated
-                        elsif !encoding_match?
                           :updated
                         else
                           # we're gzipped, the object hashes differ, but the content hashes are equal
@@ -216,7 +214,7 @@ module Middleman
       end
 
       def encoding_match?
-        (gzipped && full_s3_resource.content_encoding == 'gzip') || (!gzipped && !full_s3_resource.content_encoding )
+        (options.prefer_gzip && gzipped && full_s3_resource.content_encoding == 'gzip') || (!options.prefer_gzip && !gzipped && !full_s3_resource.content_encoding )
       end
 
       def remote_content_md5
