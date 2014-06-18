@@ -57,7 +57,7 @@ module Middleman
 
       def update!
         body { |body|
-          say_status "Updating".blue + " #{path}#{ gzipped ? ' (gzipped)'.white : ''}"
+          say_status "Updating".blue + " #{remote_path}#{ gzipped ? ' (gzipped)'.white : ''}"
           if options.verbose
             say_status "Original:    #{original_path.white}"
             say_status "Local Path:  #{local_path.white}"
@@ -92,21 +92,21 @@ module Middleman
       end
 
       def local_path
-        local_path = build_dir + '/' + path
+        local_path = build_dir + '/' + path.gsub(/^#{options.prefix}/, '')
         if options.prefer_gzip && File.exist?(local_path + ".gz")
           @gzipped = true
           local_path += ".gz"
         end
-        local_path.sub(options.prefix, '')
+        local_path
       end
 
       def destroy!
-        say_status "Deleting".red + " #{path}"
+        say_status "Deleting".red + " #{remote_path}"
         bucket.files.destroy remote_path
       end
 
       def create!
-        say_status "Creating".green + " #{path}#{ gzipped ? ' (gzipped)'.white : ''}"
+        say_status "Creating".green + " #{remote_path}#{ gzipped ? ' (gzipped)'.white : ''}"
         if options.verbose
           say_status "Original:    #{original_path.white}"
           say_status "Local Path:  #{local_path.white}"
@@ -125,7 +125,7 @@ module Middleman
                  elsif alternate_encoding?
                    'alternate encoding'
                  end
-        say_status "Ignoring".yellow + " #{path} #{ reason ? "(#{reason})".white : "" }"
+        say_status "Ignoring".yellow + " #{remote_path} #{ reason ? "(#{reason})".white : "" }"
       end
 
       def to_delete?

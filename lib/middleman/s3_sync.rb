@@ -63,7 +63,7 @@ module Middleman
       def paths
         @paths ||= begin
                      say_status "Gathering the paths to evaluate."
-                     (remote_paths + local_paths).uniq.sort
+                     (remote_paths.map { |rp| rp.gsub(/^#{s3_sync_options.prefix}/, '')} + local_paths).uniq.sort
                    end
       end
 
@@ -76,7 +76,7 @@ module Middleman
                              local_paths.reject! { |p| p =~ /\.gz$/ && File.exist?(p.gsub(/\.gz$/, '')) }
                            end
 
-                           local_paths.pmap(32) { |p| p.gsub(/#{build_dir}\//, s3_sync_options.prefix) }
+                           local_paths.pmap(32) { |p| p.gsub(/#{build_dir}\//, '') }
                          end
       end
 
