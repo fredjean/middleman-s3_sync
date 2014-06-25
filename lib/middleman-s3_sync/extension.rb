@@ -12,6 +12,8 @@ module Middleman
 
         app.send :include, Helpers
 
+        app.define_hook :after_s3_sync
+
         app.after_configuration do |config|
 
           # Define the after_build step after during configuration so
