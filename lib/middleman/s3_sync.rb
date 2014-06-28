@@ -15,6 +15,8 @@ module Middleman
       include Status
 
       def sync
+        @app = ::Middleman::Application.server.inst
+
         unless work_to_be_done?
           say_status "\nAll S3 files are up to date."
           return
@@ -28,6 +30,11 @@ module Middleman
         create_resources
         update_resources
         delete_resources
+
+        @app.run_hook :after_s3_sync, ignored: files_to_ignore.map(&:path),
+                                      created: files_to_create.map(&:path),
+                                      updated: files_to_update.map(&:path),
+                                      deleted: files_to_delete.map(&:path)
       end
 
       def bucket
