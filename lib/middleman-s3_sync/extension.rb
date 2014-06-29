@@ -4,11 +4,13 @@ require 'map'
 module Middleman
   module S3Sync
     class << self
+      attr_accessor :options
+
       def registered(app, options_hash = {}, &block)
         options = Options.new
         yield options if block_given?
 
-        @@options = options
+        @options = options
 
         app.send :include, Helpers
 
@@ -28,7 +30,7 @@ module Middleman
       alias :included :registered
 
       def s3_sync_options
-        @@options
+        @options
       end
 
       module Helpers

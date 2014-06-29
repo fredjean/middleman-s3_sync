@@ -1,11 +1,16 @@
 module Middleman
   module S3Sync
     class Resource
-      attr_accessor :path, :partial_s3_resource, :content_type, :gzipped
+      attr_accessor :path, :partial_s3_resource, :full_s3_resource, :content_type, :gzipped, :options
 
       CONTENT_MD5_KEY = 'x-amz-meta-content-md5'
 
       include Status
+
+      def initialize(path, partial_s3_resource)
+        @path = path
+        @partial_s3_resource = partial_s3_resource
+      end
 
       def s3_resource
         @full_s3_resource || @partial_s3_resource
@@ -13,12 +18,7 @@ module Middleman
 
       # S3 resource as returned by a HEAD request
       def full_s3_resource
-        @full_s3_resource ||= bucket.files.head("#{options.prefix}#{path}")
-      end
-
-      def initialize(path, partial_s3_resource)
-        @path = path
-        @partial_s3_resource = partial_s3_resource
+        @full_s3_resource ||= bucket.files.head(remote_path)
       end
 
       def remote_path
@@ -196,7 +196,7 @@ module Middleman
       end
 
       def remote?
-        s3_resource
+        !!s3_resource
       end
 
       def redirect?
@@ -253,7 +253,7 @@ module Middleman
       end
 
       def options
-        Middleman::S3Sync.s3_sync_options
+        @options || Middleman::S3Sync.s3_sync_options
       end
     end
   end
