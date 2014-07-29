@@ -105,7 +105,8 @@ describe Middleman::S3Sync::Options do
   context "#read_config" do
     let(:aws_access_key_id) { "foo" }
     let(:aws_secret_access_key) { "bar" }
-    let(:config) { { "aws_access_key_id" => aws_access_key_id, "aws_secret_access_key" => aws_secret_access_key } }
+    let(:bucket) { "baz" }
+    let(:config) { { "aws_access_key_id" => aws_access_key_id, "aws_secret_access_key" => aws_secret_access_key, "bucket" => bucket } }
     let(:file) { StringIO.new(YAML.dump(config)) }
 
     before do
@@ -114,5 +115,6 @@ describe Middleman::S3Sync::Options do
 
     its(:aws_access_key_id) { should eq(aws_access_key_id) }
     its(:aws_secret_access_key) { should eq(aws_secret_access_key) }
+    its(:bucket) { should eq(bucket) }
   end
 end
