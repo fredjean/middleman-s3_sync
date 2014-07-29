@@ -122,10 +122,10 @@ module Middleman
                    :redirect
                  elsif directory?
                    :directory
-                 elsif alternate_encoding?
-                   'alternate encoding'
                  end
-        say_status "Ignoring".yellow + " #{remote_path} #{ reason ? "(#{reason})".white : "" }"
+        unless alternate_encoding?
+          say_status "Ignoring".yellow + " #{remote_path} #{ reason ? "(#{reason})".white : "" }"
+        end
       end
 
       def to_delete?
