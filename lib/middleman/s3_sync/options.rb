@@ -1,7 +1,7 @@
 module Middleman
   module S3Sync
     class Options
-      attr_accessor \
+      OPTIONS = [
         :prefix,
         :acl,
         :bucket,
@@ -19,6 +19,8 @@ module Middleman
         :path_style,
         :version_bucket,
         :verbose
+      ]
+      attr_accessor *OPTIONS
 
       def initialize
         # read config from .s3_sync on initialization
@@ -105,10 +107,11 @@ module Middleman
           io = File.open(config_file_path, "r")
         end
 
-        config = YAML.load(io)
+        config = YAML.load(io).symbolize_keys
 
-        self.aws_access_key_id = config["aws_access_key_id"] if config["aws_access_key_id"]
-        self.aws_secret_access_key = config["aws_secret_access_key"] if config["aws_secret_access_key"]
+        OPTIONS.each do |config_option|
+          self.send("#{config_option}=".to_sym, config[config_option]) if config[config_option]
+        end
       end
 
       protected
