@@ -105,7 +105,7 @@ map to the following values:
 
 | Setting               | Environment Variable               |
 | --------------------- | ---------------------------------- |
-| aws_access_key_id     | ```ENV['AWS_ACCESS_KEY_ID```       |
+| aws_access_key_id     | ```ENV['AWS_ACCESS_KEY_ID']```     |
 | aws_secret_access_key | ```ENV['AWS_SECRET_ACCESS_KEY']``` |
 
 The environment is used when the credentials are not set in the activate
