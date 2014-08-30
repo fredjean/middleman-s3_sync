@@ -111,6 +111,31 @@ map to the following values:
 The environment is used when the credentials are not set in the activate
 method or passed through the ```.s3_sync``` configuration file.
 
+### IAM Policy
+
+Here's a sample IAM policy that will allow a user to update the site
+contained in a bucket named "mysite.com":
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "arn:aws:s3:::mysite.com"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "arn:aws:s3:::mysite.com/*"
+    }
+  ]
+}
+```
+
+This will give full access to both the bucket and it's contents.
+
 ## Push All Content to S3
 
 There are situations where you might need to push the files to S3. In
