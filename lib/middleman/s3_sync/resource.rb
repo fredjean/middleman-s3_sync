@@ -123,7 +123,7 @@ module Middleman
                  elsif directory?
                    :directory
                  end
-        unless alternate_encoding?
+        if options.verbose
           say_status "Ignoring".yellow + " #{remote_path} #{ reason ? "(#{reason})".white : "" }"
         end
       end
