@@ -14,8 +14,10 @@ module Middleman
     class << self
       include Status
 
-      def sync
+      def sync(options)
         @app = ::Middleman::Application.server.inst
+
+        self.s3_sync_options = options
 
         unless work_to_be_done?
           say_status "\nAll S3 files are up to date."

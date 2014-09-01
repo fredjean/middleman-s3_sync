@@ -21,7 +21,7 @@ module Middleman
           # Define the after_build step after during configuration so
           # that it's pushed to the end of the callback chain
           app.after_build do |builder|
-            ::Middleman::S3Sync.sync if options.after_build
+            ::Middleman::S3Sync.sync(@option) if options.after_build
           end
 
           options.build_dir ||= build_dir
@@ -31,6 +31,10 @@ module Middleman
 
       def s3_sync_options
         @options
+      end
+
+      def s3_sync_options=(options)
+        @options = options
       end
 
       module Helpers
