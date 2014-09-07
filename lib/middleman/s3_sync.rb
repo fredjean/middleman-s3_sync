@@ -43,6 +43,7 @@ module Middleman
         @bucket ||= begin
                       bucket = connection.directories.get(s3_sync_options.bucket, :prefix => s3_sync_options.prefix)
                       raise "Bucket #{s3_sync_options.bucket} doesn't exist!" unless bucket
+                      bucket
                     end
       end
 
