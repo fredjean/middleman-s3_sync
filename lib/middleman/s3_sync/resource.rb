@@ -56,7 +56,7 @@ module Middleman
       alias :attributes :to_h
 
       def update!
-        body { |body|
+        local_content { |body|
           say_status "Updating".blue + " #{remote_path}#{ gzipped ? ' (gzipped)'.white : ''}"
           if options.verbose
             say_status "Original:    #{original_path.white}"
@@ -64,28 +64,9 @@ module Middleman
             say_status "remote md5:  #{remote_object_md5.white} / #{remote_content_md5}"
             say_status "content md5: #{local_object_md5.white} / #{local_content_md5}"
           end
+
+          s3_resource.merge_attributes(to_h)
           s3_resource.body = body
-
-          s3_resource.acl = options.acl
-          s3_resource.content_type = content_type
-          s3_resource.metadata = { CONTENT_MD5_KEY => local_content_md5 }
-
-          if caching_policy
-            s3_resource.cache_control = caching_policy.cache_control
-            s3_resource.expires = caching_policy.expires
-          end
-
-          if options.prefer_gzip && gzipped
-            s3_resource.content_encoding = "gzip"
-          end
-
-          if options.reduced_redundancy_storage
-            s3_resource.storage_class = 'REDUCED_REDUNDANCY'
-          end
-
-          if options.encryption
-            s3_resource.encryption = 'AES256'
-          end
 
           s3_resource.save
         }
@@ -112,8 +93,8 @@ module Middleman
           say_status "Local Path:  #{local_path.white}"
           say_status "content md5: #{local_content_md5.white}"
         end
-        body { |body|
-          bucket.files.create(to_h.merge(:body => body))
+        local_content { |body|
+          bucket.files.create(to_h.merge(body: body))
         }
       end
 
@@ -152,7 +133,7 @@ module Middleman
         status == :ignored || status == :alternate_encoding
       end
 
-      def body(&block)
+      def local_content(&block)
         File.open(local_path, &block)
       end
 
