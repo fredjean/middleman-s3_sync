@@ -273,7 +273,8 @@ You can set the ```prefer_gzip``` option to look for a gzipped version
 of a resource. The gzipped version of the resource will be pushed to S3
 instead of the original and the ```Content-Encoding``` and ```Content-Type```
 headers will be set correctly. This will cause Amazon to serve the
-compressed version of the resource.
+compressed version of the resource. In order for this to work, you need to
+have the `:gzip` extension activated in your `config.rb`.
 
 ## A Debt of Gratitude
 
