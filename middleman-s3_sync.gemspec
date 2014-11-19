@@ -20,7 +20,7 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'middleman-core', '>= 3.0.0'
   gem.add_runtime_dependency 'unf'
-  gem.add_runtime_dependency 'fog', '>= 1.10.1'
+  gem.add_runtime_dependency 'fog', '>= 1.25.0'
   gem.add_runtime_dependency 'map'
   gem.add_runtime_dependency 'pmap'
   gem.add_runtime_dependency 'ruby-progressbar'
