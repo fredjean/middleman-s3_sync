@@ -3,6 +3,7 @@ module Middleman
     class Options
       OPTIONS = [
         :prefix,
+        :http_prefix,
         :acl,
         :bucket,
         :region,
@@ -83,8 +84,17 @@ module Middleman
         (@path_style.nil? ? true : @path_style)
       end
 
+      def prefix=(prefix)
+        http_prefix = @http_prefix ? @http_prefix.sub(%r{^/}, "") : ""
+        if http_prefix.split("/").first == prefix
+          @prefix = ""
+        else
+          @prefix = prefix
+        end
+      end
+
       def prefix
-        @prefix.nil? ? "" : "#{@prefix}/"
+        @prefix.blank? ? "" : "#{@prefix}/"
       end
 
       def version_bucket

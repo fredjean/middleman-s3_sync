@@ -117,4 +117,14 @@ describe Middleman::S3Sync::Options do
     its(:aws_secret_access_key) { should eq(aws_secret_access_key) }
     its(:bucket) { should eq(bucket) }
   end
+
+  context "prefix with http_prefix" do
+    before do
+      options.http_prefix = "/blog"
+      options.prefix = "blog"
+    end
+
+    its(:prefix) { should eq("")}
+  end
+
 end

@@ -17,6 +17,10 @@ module Middleman
         app.define_hook :after_s3_sync
 
         app.after_configuration do |config|
+          # Record the http_prefix if it is set. We will need it while setting
+          # the options to detect whether it is set and adjust the prefix value
+          # accordingly
+          options.http_prefix = app.respond_to? :http_prefix ? app.http_prefix : nil
 
           # Define the after_build step after during configuration so
           # that it's pushed to the end of the callback chain

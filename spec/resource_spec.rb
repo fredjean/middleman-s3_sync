@@ -22,7 +22,7 @@ describe Middleman::S3Sync::Resource do
 
       its(:status) { should eq :new }
 
-      it "does not have a remote equivalend" do
+      it "does not have a remote equivalent" do
         expect(resource).not_to be_remote
       end
 
