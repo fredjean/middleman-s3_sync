@@ -87,6 +87,9 @@ There are a few ways to provide the AWS credentials for s3_sync:
 You can set the aws_access_key_id and aws_secret_access_key in the block
 that is passed to the activate method.
 
+> I strongly discourage using this method. This will lead you to add and commit these changes
+> to your SCM and potentially expose sensitive information to the world.
+
 #### Through ```.s3_sync``` File
 
 You can create a ```.s3_sync``` at the root of your middleman project.
@@ -97,6 +100,9 @@ The .s3_sync file takes precedence to the configuration passed in the
 activate method.
 
 A sample ```.s3_sync``` file is included at the root of this repo.
+
+> Make sure to add .s3_sync to your ignore list if you choose this approach. Not doing so may expose
+> credentials to the world.
 
 #### Through Environment
 
