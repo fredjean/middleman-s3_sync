@@ -57,14 +57,7 @@ module Middleman
 
       def update!
         local_content { |body|
-          say_status "Updating".blue + " #{remote_path}#{ gzipped ? ' (gzipped)'.white : ''}"
-          if options.verbose
-            say_status "Original:    #{original_path.white}"
-            say_status "Local Path:  #{local_path.white}"
-            say_status "remote md5:  #{remote_object_md5.white} / #{remote_content_md5}"
-            say_status "content md5: #{local_object_md5.white} / #{local_content_md5}"
-          end
-
+          say_status ANSI.blue{"Updating"} + " #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
           s3_resource.merge_attributes(to_h)
           s3_resource.body = body
 
@@ -82,17 +75,12 @@ module Middleman
       end
 
       def destroy!
-        say_status "Deleting".red + " #{remote_path}"
+        say_status ANSI.red { "Deleting" } + " " + remote_path
         bucket.files.destroy remote_path
       end
 
       def create!
-        say_status "Creating".green + " #{remote_path}#{ gzipped ? ' (gzipped)'.white : ''}"
-        if options.verbose
-          say_status "Original:    #{original_path.white}"
-          say_status "Local Path:  #{local_path.white}"
-          say_status "content md5: #{local_content_md5.white}"
-        end
+        say_status ANSI.green { "Creating" } + " #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
         local_content { |body|
           bucket.files.create(to_h.merge(body: body))
         }
@@ -105,7 +93,7 @@ module Middleman
                    :directory
                  end
         if options.verbose
-          say_status "Ignoring".yellow + " #{remote_path} #{ reason ? "(#{reason})".white : "" }"
+          say_status ANSI.yellow {"Ignoring"} + " #{remote_path} #{ reason ? ANSI.white {"(#{reason})" } : "" }"
         end
       end
 
