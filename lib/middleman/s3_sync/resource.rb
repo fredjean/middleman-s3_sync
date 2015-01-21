@@ -7,8 +7,9 @@ module Middleman
 
       include Status
 
-      def initialize(path, partial_s3_resource)
-        @path = path
+      def initialize(resource, partial_s3_resource)
+        @resource = resource
+        @path = resource.path
         @partial_s3_resource = partial_s3_resource
       end
 
@@ -205,7 +206,7 @@ module Middleman
       end
 
       def content_type
-        @content_type ||= MIME::Types.of(path).first
+        @resource.content_type
       end
 
       def caching_policy

@@ -39,6 +39,12 @@ module Middleman
       ::Middleman::S3Sync.sync(options) if options.after_build
     end
 
+    def manipulate_resource_list(resources)
+      resources.each do |resource|
+        puts resource.destination_path
+      end
+    end
+
     def s3_sync_options
       options
     end
