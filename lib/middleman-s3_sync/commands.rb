@@ -28,7 +28,7 @@ module Middleman
         shared_inst = ::Middleman::Application.server.inst
         bucket = shared_inst.s3_sync_options.bucket rescue nil
         unless bucket
-          raise Thor::Error.new "You need to activate the s3_sync extension."
+          raise Thor::Error.new "You need to activate the s3_sync extension and at least provide the bucket name."
         end
 
         s3_sync_options = shared_inst.s3_sync_options
