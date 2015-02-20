@@ -164,7 +164,7 @@ option in the config block:
 ```ruby
 activate :s3_sync do |s3_sync|
   # ...
-  s3_sync.prefix = '/prefix'
+  s3_sync.prefix = 'prefix'
 end
 ```
 
