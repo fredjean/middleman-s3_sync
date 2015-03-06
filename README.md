@@ -1,5 +1,7 @@
 # Middleman::S3Sync
 
+[![Join the chat at https://gitter.im/fredjean/middleman-s3_sync](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fredjean/middleman-s3_sync?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Code Climate](https://codeclimate.com/github/fredjean/middleman-s3_sync.png)](https://codeclimate.com/github/fredjean/middleman-s3_sync) [![Build Status](https://travis-ci.org/fredjean/middleman-s3_sync.png?branch=master)](https://travis-ci.org/fredjean/middleman-s3_sync)
 
 This gem determines which files need to be added, updated and optionally deleted
