@@ -99,7 +99,11 @@ module Middleman
       end
 
       def remote_paths
-        @remote_paths ||= bucket_files.map(&:key)
+        @remote_paths ||= if s3_sync_options.delete
+                            bucket_files.map(&:key)
+                          else
+                            []
+                          end
       end
 
       def bucket_files
