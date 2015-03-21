@@ -1,4 +1,4 @@
-require 'fog'
+require 'fog/aws/storage'
 require 'pmap'
 require 'digest/md5'
 require 'middleman/s3_sync/version'
@@ -58,8 +58,7 @@ module Middleman
       end
 
       def connection
-        @connection ||= Fog::Storage.new({
-          :provider => 'AWS',
+        @connection ||= Fog::Storage::AWS.new({
           :aws_access_key_id => s3_sync_options.aws_access_key_id,
           :aws_secret_access_key => s3_sync_options.aws_secret_access_key,
           :region => s3_sync_options.region,
