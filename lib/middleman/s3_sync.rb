@@ -8,11 +8,14 @@ require 'middleman/s3_sync/status'
 require 'middleman/s3_sync/resource'
 require 'middleman-s3_sync/extension'
 require 'ruby-progressbar'
+require 'thread'
 
 module Middleman
   module S3Sync
     class << self
       include Status
+      @@bucket_lock = Mutex.new
+      @@bucket_files_lock = Mutex.new
 
       def sync(options)
         @app = ::Middleman::Application.server.inst
@@ -40,11 +43,13 @@ module Middleman
       end
 
       def bucket
-        @bucket ||= begin
-                      bucket = connection.directories.get(s3_sync_options.bucket, :prefix => s3_sync_options.prefix)
-                      raise "Bucket #{s3_sync_options.bucket} doesn't exist!" unless bucket
-                      bucket
-                    end
+        @@bucket_lock.synchronize do
+          @bucket ||= begin
+                        bucket = connection.directories.get(s3_sync_options.bucket, :prefix => s3_sync_options.prefix)
+                        raise "Bucket #{s3_sync_options.bucket} doesn't exist!" unless bucket
+                        bucket
+                      end
+        end
       end
 
       protected
@@ -94,15 +99,21 @@ module Middleman
       end
 
       def remote_paths
-        @remote_paths ||= bucket_files.map(&:key)
+        @remote_paths ||= if s3_sync_options.delete
+                            bucket_files.map(&:key)
+                          else
+                            []
+                          end
       end
 
       def bucket_files
-        @bucket_files ||= [].tap { |files|
-          bucket.files.each { |f|
-            files << f
+        @@bucket_files_lock.synchronize do
+          @bucket_files ||= [].tap { |files|
+            bucket.files.each { |f|
+              files << f
+            }
           }
-        }
+        end
       end
 
       def create_resources
