@@ -82,11 +82,14 @@ describe Middleman::S3Sync::Resource do
   context "the file does not exist locally" do
     subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, remote) }
 
-    let(:remote) { double("remote") }
+    let(:remote) {
+      double(
+        key: 'path/to/resource.html',
+        metadata: {}
+      )
+    }
 
     before do
-        allow(remote).to receive(:key).and_return('path/to/resource.html')
-        allow(remote).to receive(:metadata).and_return({})
         resource.full_s3_resource = remote
     end
 
