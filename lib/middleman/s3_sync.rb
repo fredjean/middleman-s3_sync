@@ -17,6 +17,8 @@ module Middleman
       @@bucket_lock = Mutex.new
       @@bucket_files_lock = Mutex.new
 
+      attr_accessor :s3_sync_options
+
       def sync(options)
         @app = ::Middleman::Application.server.inst
 

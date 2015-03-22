@@ -31,6 +31,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'pry-nav'
   gem.add_development_dependency 'rspec', '>= 3.0.0'
   gem.add_development_dependency 'rspec-its'
+  gem.add_development_dependency 'rspec-mocks'
   gem.add_development_dependency 'timerizer'
   gem.add_development_dependency 'travis'
   gem.add_development_dependency 'travis-lint'

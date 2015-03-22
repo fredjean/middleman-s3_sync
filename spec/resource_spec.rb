@@ -6,14 +6,19 @@ describe Middleman::S3Sync::Resource do
     Middleman::S3Sync::Options.new
   }
 
+  let(:mm_resource) {
+    double(
+      path: 'path/to/resource.html'
+    )
+  }
   before do
-    Middleman::S3Sync.options = options
+    Middleman::S3Sync.s3_sync_options = options
     options.build_dir = "build"
     options.prefer_gzip = false
   end
 
   context "a new resource" do
-    subject(:resource) { Middleman::S3Sync::Resource.new('path/to/resource.html', nil) }
+    subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, nil) }
 
     context "without a prefix" do
       before do
@@ -75,7 +80,7 @@ describe Middleman::S3Sync::Resource do
   end
 
   context "the file does not exist locally" do
-    subject(:resource) { Middleman::S3Sync::Resource.new('path/to/resource.html', remote) }
+    subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, remote) }
 
     let(:remote) { double("remote") }
 
