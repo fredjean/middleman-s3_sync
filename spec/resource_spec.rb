@@ -80,7 +80,7 @@ describe Middleman::S3Sync::Resource do
   end
 
   context "the file does not exist locally" do
-    subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, remote) }
+    subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
 
     let(:remote) {
       double(
@@ -90,7 +90,7 @@ describe Middleman::S3Sync::Resource do
     }
 
     before do
-        resource.full_s3_resource = remote
+      resource.full_s3_resource = remote
     end
 
     context "without a prefix" do
@@ -124,7 +124,7 @@ describe Middleman::S3Sync::Resource do
         expect(resource).to be_remote
       end
 
-      it "exists locally" do
+      it "does not exist locally" do
         expect(resource).not_to be_local
       end
 

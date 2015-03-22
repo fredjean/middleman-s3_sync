@@ -1,7 +1,7 @@
 module Middleman
   module S3Sync
     class Resource
-      attr_accessor :path, :partial_s3_resource, :full_s3_resource, :content_type, :gzipped, :options
+      attr_accessor :path, :resource, :partial_s3_resource, :full_s3_resource, :content_type, :gzipped, :options
 
       CONTENT_MD5_KEY = 'x-amz-meta-content-md5'
 
@@ -9,7 +9,7 @@ module Middleman
 
       def initialize(resource, partial_s3_resource)
         @resource = resource
-        @path = resource.path
+        @path = resource ? resource.path : partial_s3_resource.key
         @partial_s3_resource = partial_s3_resource
       end
 
