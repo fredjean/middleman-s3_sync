@@ -41,7 +41,7 @@ module Middleman
 
     def manipulate_resource_list(resources)
       resources.each do |resource|
-        puts resource.destination_path
+        ::Middleman::S3Sync.add_local_resource(resource)
       end
     end
 

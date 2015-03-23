@@ -54,6 +54,10 @@ module Middleman
         end
       end
 
+      def add_local_resource(mm_resource)
+        resources[mm_resource.path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.path)).tap(&:status)
+      end
+
       protected
       def update_bucket_versioning
         connection.put_bucket_versioning(s3_sync_options.bucket, "Enabled") if s3_sync_options.version_bucket
@@ -68,11 +72,12 @@ module Middleman
         })
       end
 
+      def remote_resource_for_path(path)
+        bucket_files.find { |f| f.key == "#{s3_sync_option.prefix}#{path}" }
+      end
+
       def resources
-        @resources ||= paths.pmap(32) do |p|
-          progress_bar.increment
-          S3Sync::Resource.new(p, bucket_files.find { |f| f.key == "#{s3_sync_options.prefix}#{p}" }).tap(&:status)
-        end
+        @resource ||= {}
       end
 
       def progress_bar
@@ -84,19 +89,6 @@ module Middleman
                      say_status "Gathering the paths to evaluate."
                      (remote_paths.map { |rp| rp.gsub(/^#{s3_sync_options.prefix}/, '')} + local_paths).uniq.sort
                    end
-      end
-
-      def local_paths
-        @local_paths ||= begin
-                           local_paths = (Dir[build_dir + "/**/*"] + Dir[build_dir + "/**/.*"])
-                                           .reject { |p| File.directory?(p) }
-
-                           if s3_sync_options.prefer_gzip
-                             local_paths.reject! { |p| p =~ /\.gz$/ && File.exist?(p.gsub(/\.gz$/, '')) }
-                           end
-
-                           local_paths.pmap(32) { |p| p.gsub(/#{build_dir}\//, '') }
-                         end
       end
 
       def remote_paths
