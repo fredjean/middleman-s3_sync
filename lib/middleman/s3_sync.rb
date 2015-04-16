@@ -70,7 +70,7 @@ module Middleman
             :aws_secret_access_key => s3_sync_options.aws_secret_access_key
           })
         else
-          connection_options.merge!({ use_iam_profile: true })
+          connection_options.merge!({ :use_iam_profile => true })
         end
 
         @connection ||= Fog::Storage::AWS.new(connection_options)
