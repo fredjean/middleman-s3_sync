@@ -58,12 +58,22 @@ module Middleman
       end
 
       def connection
-        @connection ||= Fog::Storage::AWS.new({
-          :aws_access_key_id => s3_sync_options.aws_access_key_id,
-          :aws_secret_access_key => s3_sync_options.aws_secret_access_key,
+
+        connection_options = {
           :region => s3_sync_options.region,
           :path_style => s3_sync_options.path_style
-        })
+        }
+
+        if s3_sync_options.aws_access_key_id && s3_sync_options.aws_secret_access_key
+          connection_options.merge!({
+            :aws_access_key_id => s3_sync_options.aws_access_key_id,
+            :aws_secret_access_key => s3_sync_options.aws_secret_access_key
+          })
+        else
+          connection_options.merge!({ use_iam_profile: true })
+        end
+
+        @connection ||= Fog::Storage::AWS.new(connection_options)
       end
 
       def resources

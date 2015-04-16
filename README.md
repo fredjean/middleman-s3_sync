@@ -117,6 +117,10 @@ map to the following values:
 The environment is used when the credentials are not set in the activate
 method or passed through the ```.s3_sync``` configuration file.
 
+#### Through IAM role
+
+Alternatively, if you are running builds on EC2 instance which has approrpiate IAM role, then you don't need to think about specifying credentials at all – they will be pulled from AWS metadata server.
+
 ### IAM Policy
 
 Here's a sample IAM policy that will allow a user to update the site
