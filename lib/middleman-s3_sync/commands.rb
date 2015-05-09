@@ -20,6 +20,9 @@ module Middleman
       method_option :bucket, type: :string,
         desc: "Specify which bucket to use, overrides the configured bucket.",
         aliases: '-b'
+      method_option :prefix, type: :string,
+        desc: "Specify which prefix to use, overrides the configured prefix.",
+        aliases: '-p'
       method_option :verbose, type: :boolean,
         desc: "Adds more verbosity...",
         aliases: '-v'
@@ -37,6 +40,7 @@ module Middleman
         s3_sync_options.force = options[:force] if options[:force]
         s3_sync_options.bucket = options[:bucket] if options[:bucket]
         s3_sync_options.verbose = options[:verbose] if options[:verbose]
+        s3_sync_options.prefix  = options[:prefix] if options[:prefix]
 
         ::Middleman::S3Sync.sync(s3_sync_options)
       end

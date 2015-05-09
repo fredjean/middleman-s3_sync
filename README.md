@@ -155,10 +155,17 @@ such case, you can pass the ```--force``` option:
 
 ## Overriding the destination bucket
 
-You can now override the destination bucket using the --bucket switch.
+You can override the destination bucket using the --bucket switch.
 The command is:
 
     $ middleman s3_sync --bucket=my.new.bucket
+
+## Overriding the destination prefix
+
+You can override the destination prefix using the `--prefix` switch. The
+command is:
+
+    $ middleman s3_sync --prefix=my/new/prefix
 
 ## Pushing to a folder within a bucket
 
