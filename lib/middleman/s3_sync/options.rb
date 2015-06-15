@@ -19,7 +19,8 @@ module Middleman
         :reduced_redundancy_storage,
         :path_style,
         :version_bucket,
-        :verbose
+        :verbose,
+        :content_types
       ]
       attr_accessor *OPTIONS
 
@@ -99,6 +100,10 @@ module Middleman
 
       def version_bucket
         @version_bucket.nil? ? false : @version_bucket
+      end
+
+      def content_types
+        @content_types || {}
       end
 
       # Read config options from an IO stream and set them on `self`. Defaults

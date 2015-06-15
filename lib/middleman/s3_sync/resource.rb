@@ -205,6 +205,7 @@ module Middleman
       end
 
       def content_type
+        @content_type ||= options.content_types[path]
         @content_type ||= MIME::Types.of(path).first
       end
 
