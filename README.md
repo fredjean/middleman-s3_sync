@@ -259,6 +259,14 @@ are (I'm looking at you Chrome!). Setting the `Cache-Control` or
 that stand between them and your content will behave the way you want
 them to. YMMV.
 
+### Path Specific Content Type
+
+You can now set the content type of a path through the
+```s3_sync.content_types``` hash. This hasi will take precendence over
+the content type discovered by the mime_types gem. The [associated pull
+request](https://github.com/fredjean/middleman-s3_sync/pull/87) has a
+few good examples on how to use this feature.
+
 ### ACLs
 
 ```middleman-s3_sync``` will set the resources's ACL to ```public-read``` by default. You
