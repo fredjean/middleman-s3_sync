@@ -136,22 +136,22 @@ module Middleman
 
       def files_to_delete
         @files_to_delete ||= if s3_sync_options.delete
-                                 resources.select { |r| r.to_delete? }
+                               resources.values.select { |r| r.to_delete? }
                              else
                                []
                              end
       end
 
       def files_to_create
-        @files_to_create ||= resources.select { |r| r.to_create? }
+        @files_to_create ||= resources.values.select { |r| r.to_create? }
       end
 
       def files_to_update
-        @files_to_update ||= resources.select { |r| r.to_update? }
+        @files_to_update ||= resources.values.select { |r| r.to_update? }
       end
 
       def files_to_ignore
-        @files_to_ignore ||= resources.select { |r| r.to_ignore? }
+        @files_to_ignore ||= resources.values.select { |r| r.to_ignore? }
       end
 
       def build_dir
