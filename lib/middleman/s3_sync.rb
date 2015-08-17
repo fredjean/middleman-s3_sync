@@ -3,7 +3,6 @@ require 'pmap'
 require 'digest/md5'
 require 'middleman/s3_sync/version'
 require 'middleman/s3_sync/options'
-require 'middleman-s3_sync/commands'
 require 'middleman/s3_sync/status'
 require 'middleman/s3_sync/resource'
 require 'middleman-s3_sync/extension'
@@ -18,12 +17,9 @@ module Middleman
       @@bucket_files_lock = Mutex.new
 
       attr_accessor :s3_sync_options
+      attr_accessor :app
 
-      def sync(options)
-        @app = ::Middleman::Application.server.inst
-
-        self.s3_sync_options = options
-
+      def sync()
         unless work_to_be_done?
           say_status "\nAll S3 files are up to date."
           return
@@ -55,7 +51,8 @@ module Middleman
       end
 
       def add_local_resource(mm_resource)
-        resources[mm_resource.path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.path)).tap(&:status)
+        puts mm_resource.destination_path
+        resources[mm_resource.destination_path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.path)).tap(&:status)
       end
 
       protected
@@ -73,7 +70,7 @@ module Middleman
       end
 
       def remote_resource_for_path(path)
-        bucket_files.find { |f| f.key == "#{s3_sync_option.prefix}#{path}" }
+        bucket_files.find { |f| f.key == "#{s3_sync_options.prefix}#{path}" }
       end
 
       def resources

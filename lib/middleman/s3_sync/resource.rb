@@ -62,7 +62,7 @@ module Middleman
           s3_resource.merge_attributes(to_h)
           s3_resource.body = body
 
-          s3_resource.save
+          s3_resource.save unless options.dry_run
         }
       end
 
@@ -77,13 +77,13 @@ module Middleman
 
       def destroy!
         say_status ANSI.red { "Deleting" } + " " + remote_path
-        bucket.files.destroy remote_path
+        bucket.files.destroy remote_path unless options.dry_run
       end
 
       def create!
         say_status ANSI.green { "Creating" } + " #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
         local_content { |body|
-          bucket.files.create(to_h.merge(body: body))
+          bucket.files.create(to_h.merge(body: body)) unless options.dry_run
         }
       end
 

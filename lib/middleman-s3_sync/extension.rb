@@ -1,4 +1,5 @@
 require 'middleman-core'
+require 'middleman/s3_sync'
 require 'map'
 
 module Middleman
@@ -23,6 +24,7 @@ module Middleman
     option :path_style, true, 'Whether to use path_style URLs to communiated with S3'
     option :version_bucket, false, 'Whether to enable versionning on the S3 bucket content'
     option :verbose, false, 'Whether to provide more verbose output'
+    option :dry_run, false, 'Whether to perform a dry-run'
 
     def initialize(app, options_hash = {}, &block)
       super
@@ -33,10 +35,11 @@ module Middleman
     def after_configuration
       options.http_prefix = app.http_prefix if app.respond_to? :http_prefix
       options.build_dir ||= app.build_dir if app.respond_to? :build_dir
+      ::Middleman::S3Sync.s3_sync_options = s3_sync_options
     end
 
     def after_build
-      ::Middleman::S3Sync.sync(options) if options.after_build
+      ::Middleman::S3Sync.sync() if options.after_build
     end
 
     def manipulate_resource_list(resources)

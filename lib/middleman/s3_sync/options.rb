@@ -19,6 +19,7 @@ module Middleman
         :reduced_redundancy_storage,
         :path_style,
         :version_bucket,
+        :dry_run,
         :verbose
       ]
       attr_accessor *OPTIONS
