@@ -32,7 +32,7 @@ module Middleman
         s3_sync_options = ::Middleman::S3Sync.s3_sync_options
 
         bucket = s3_sync_options.bucket rescue nil
-        require 'pry'; binding.pry
+
         unless bucket
           raise Thor::Error.new "You need to activate the s3_sync extension and at least provide the bucket name."
         end
