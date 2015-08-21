@@ -9,7 +9,7 @@ module Middleman
 
       def initialize(resource, partial_s3_resource)
         @resource = resource
-        @path = resource ? resource.path : partial_s3_resource.key
+        @path = resource ? resource.destination_path : partial_s3_resource.key
         @partial_s3_resource = partial_s3_resource
       end
 
@@ -206,11 +206,11 @@ module Middleman
       end
 
       def content_type
-        @resource.content_type
+        resource.content_type
       end
 
       def caching_policy
-        @caching_policy ||= options.caching_policy_for(content_type)
+        @caching_policy ||= Middleman::S3Sync.caching_policy_for(content_type)
       end
 
       protected

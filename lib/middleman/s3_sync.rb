@@ -3,6 +3,7 @@ require 'pmap'
 require 'digest/md5'
 require 'middleman/s3_sync/version'
 require 'middleman/s3_sync/options'
+require 'middleman/s3_sync/caching_policy'
 require 'middleman/s3_sync/status'
 require 'middleman/s3_sync/resource'
 require 'middleman-s3_sync/extension'
@@ -13,6 +14,8 @@ module Middleman
   module S3Sync
     class << self
       include Status
+      include CachingPolicy
+
       @@bucket_lock = Mutex.new
       @@bucket_files_lock = Mutex.new
 
@@ -52,7 +55,7 @@ module Middleman
 
       def add_local_resource(mm_resource)
         puts mm_resource.destination_path
-        resources[mm_resource.destination_path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.path)).tap(&:status)
+        resources[mm_resource.destination_path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.destination_path))# .tap(&:status)
       end
 
       protected
