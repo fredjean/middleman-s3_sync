@@ -22,7 +22,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'unf'
   gem.add_runtime_dependency 'fog-aws', '>= 0.1.1'
   gem.add_runtime_dependency 'map'
-  gem.add_runtime_dependency 'pmap'
+  gem.add_runtime_dependency 'parallel'
   gem.add_runtime_dependency 'ruby-progressbar'
   gem.add_runtime_dependency 'ansi', '~> 1.5.0'
 

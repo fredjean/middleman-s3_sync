@@ -1,5 +1,4 @@
 require 'fog/aws/storage'
-require 'pmap'
 require 'digest/md5'
 require 'middleman/s3_sync/version'
 require 'middleman/s3_sync/options'
@@ -7,7 +6,6 @@ require 'middleman/s3_sync/caching_policy'
 require 'middleman/s3_sync/status'
 require 'middleman/s3_sync/resource'
 require 'middleman-s3_sync/extension'
-require 'ruby-progressbar'
 require 'thread'
 
 module Middleman
@@ -54,8 +52,11 @@ module Middleman
       end
 
       def add_local_resource(mm_resource)
-        puts mm_resource.destination_path
-        resources[mm_resource.destination_path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.destination_path))# .tap(&:status)
+        resources[mm_resource.destination_path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.destination_path)).tap(&:status)
+      end
+
+      def remote_only_paths
+        paths - resources.keys
       end
 
       protected
@@ -80,14 +81,9 @@ module Middleman
         @resource ||= {}
       end
 
-      def progress_bar
-        @progress_bar ||= ProgressBar.create(total: paths.length)
-      end
-
       def paths
         @paths ||= begin
-                     say_status "Gathering the paths to evaluate."
-                     (remote_paths.map { |rp| rp.gsub(/^#{s3_sync_options.prefix}/, '')} + local_paths).uniq.sort
+                     (remote_paths.map { |rp| rp.gsub(/^#{s3_sync_options.prefix}/, '')} + resources.keys).uniq.sort
                    end
       end
 
@@ -139,6 +135,9 @@ module Middleman
 
       def files_to_delete
         @files_to_delete ||= if s3_sync_options.delete
+                               remote_only_paths.each do |remote_path|
+                                 resources[remote_path] ||= S3Sync::Resource.new(nil, remote_resource_for_path(remote_path)).tap(&:status)
+                               end
                                resources.values.select { |r| r.to_delete? }
                              else
                                []

@@ -86,28 +86,6 @@ module Middleman
         @version_bucket.nil? ? false : @version_bucket
       end
 
-      # Read config options from an IO stream and set them on `self`. Defaults
-      # to reading from the `.s3_sync` file in the MM project root if it exists.
-      #
-      # @param io [IO] an IO stream to read from
-      # @return [void]
-      def read_config(io = nil)
-        unless io
-          root_path = ::Middleman::Application.root
-          config_file_path = File.join(root_path, ".s3_sync")
-
-          # skip if config file does not exist
-          return unless File.exists?(config_file_path)
-
-          io = File.open(config_file_path, "r")
-        end
-
-        config = YAML.load(io).symbolize_keys
-
-        OPTIONS.each do |config_option|
-          self.send("#{config_option}=".to_sym, config[config_option]) if config[config_option]
-        end
-      end
     end
   end
 end

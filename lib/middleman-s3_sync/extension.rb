@@ -1,5 +1,7 @@
 require 'middleman-core'
 require 'middleman/s3_sync'
+require 'parallel'
+require 'ruby-progressbar'
 require 'map'
 
 module Middleman
@@ -33,6 +35,7 @@ module Middleman
     end
 
     def after_configuration
+      read_config
       options.http_prefix = app.http_prefix if app.respond_to? :http_prefix
       options.build_dir ||= app.build_dir if app.respond_to? :build_dir
       ::Middleman::S3Sync.s3_sync_options = s3_sync_options
@@ -43,7 +46,7 @@ module Middleman
     end
 
     def manipulate_resource_list(resources)
-      resources.each do |resource|
+      Parallel.each(resources, in_threads: 8, progress: "Evaluating Resources") do |resource|
         ::Middleman::S3Sync.add_local_resource(resource)
       end
     end
@@ -51,6 +54,30 @@ module Middleman
     def s3_sync_options
       options
     end
+
+    # Read config options from an IO stream and set them on `self`. Defaults
+    # to reading from the `.s3_sync` file in the MM project root if it exists.
+    #
+    # @param io [IO] an IO stream to read from
+    # @return [void]
+    def read_config(io = nil)
+      unless io
+        root_path = ::Middleman::Application.root
+        config_file_path = File.join(root_path, ".s3_sync")
+
+        # skip if config file does not exist
+        return unless File.exists?(config_file_path)
+
+        io = File.open(config_file_path, "r")
+      end
+
+      config = YAML.load(io).symbolize_keys
+
+      OPTIONS.each do |config_option|
+        self.send("#{config_option}=".to_sym, config[config_option]) if config[config_option]
+      end
+    end
+
 
     module ClassMethods
       def s3_sync_options
