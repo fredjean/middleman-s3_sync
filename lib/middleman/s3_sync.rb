@@ -69,18 +69,31 @@ module Middleman
         @app.extend ::Middleman::S3SyncExtension::ClassMethods
       end
 
+      def content_types
+        @content_types || {}
+      end
+
       protected
       def update_bucket_versioning
         connection.put_bucket_versioning(s3_sync_options.bucket, "Enabled") if s3_sync_options.version_bucket
       end
 
       def connection
-        @connection ||= Fog::Storage::AWS.new({
-          :aws_access_key_id => s3_sync_options.aws_access_key_id,
-          :aws_secret_access_key => s3_sync_options.aws_secret_access_key,
+        connection_options = {
           :region => s3_sync_options.region,
           :path_style => s3_sync_options.path_style
-        })
+        }
+
+        if s3_sync_options.aws_access_key_id && s3_sync_options.aws_secret_access_key
+          connection_options.merge!({
+            :aws_access_key_id => s3_sync_options.aws_access_key_id,
+            :aws_secret_access_key => s3_sync_options.aws_secret_access_key
+          })
+        else
+          connection_options.merge!({ :use_iam_profile => true })
+        end
+
+        @connection ||= Fog::Storage::AWS.new(connection_options)
       end
 
       def remote_resource_for_path(path)

@@ -82,9 +82,6 @@ module Middleman
         @version_bucket.nil? ? false : @version_bucket
       end
 
-      def content_types
-        @content_types || {}
-      end
     end
   end
 end

@@ -33,6 +33,8 @@ module Middleman
 
     def after_configuration
       read_config
+      options.aws_access_key_id ||= ENV['AWS_ACCESS_KEY_ID']
+      options.aws_secret_access_key ||= ENV['AWS_SECRET_ACCESS_KEY']
       options.http_prefix = app.http_prefix if app.respond_to? :http_prefix
       options.build_dir ||= app.build_dir if app.respond_to? :build_dir
       ::Middleman::S3Sync.s3_sync_options = s3_sync_options
