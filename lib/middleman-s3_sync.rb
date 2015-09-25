@@ -1,7 +1,8 @@
 require 'middleman-core'
+require 'middleman-s3_sync/commands'
 require 'middleman/s3_sync'
 
-::Middleman::Extensions.register(:s3_sync, '>= 3.0.0') do
-  ::Middleman::S3Sync
+::Middleman::Extensions.register(:s3_sync) do
+  require 'middleman-s3_sync/extension'
+  ::Middleman::S3SyncExtension
 end
-

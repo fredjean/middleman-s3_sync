@@ -18,19 +18,20 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_runtime_dependency 'middleman-core', '>= 3.0.0'
+  gem.add_runtime_dependency 'middleman-core', '>= 3.3.0'
   gem.add_runtime_dependency 'unf'
   gem.add_runtime_dependency 'fog-aws', '>= 0.1.1'
   gem.add_runtime_dependency 'map'
-  gem.add_runtime_dependency 'pmap'
+  gem.add_runtime_dependency 'parallel'
   gem.add_runtime_dependency 'ruby-progressbar'
   gem.add_runtime_dependency 'ansi', '~> 1.5.0'
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'pry'
-  gem.add_development_dependency 'pry-nav'
+  gem.add_development_dependency 'pry-byebug'
   gem.add_development_dependency 'rspec', '>= 3.0.0'
   gem.add_development_dependency 'rspec-its'
+  gem.add_development_dependency 'rspec-mocks'
   gem.add_development_dependency 'timerizer'
   gem.add_development_dependency 'travis'
   gem.add_development_dependency 'travis-lint'

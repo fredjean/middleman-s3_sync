@@ -1,14 +1,15 @@
 module Middleman
   module S3Sync
     class Resource
-      attr_accessor :path, :partial_s3_resource, :full_s3_resource, :content_type, :gzipped, :options
+      attr_accessor :path, :resource, :partial_s3_resource, :full_s3_resource, :content_type, :gzipped, :options
 
       CONTENT_MD5_KEY = 'x-amz-meta-content-md5'
 
       include Status
 
-      def initialize(path, partial_s3_resource)
-        @path = path
+      def initialize(resource, partial_s3_resource)
+        @resource = resource
+        @path = resource ? resource.destination_path : partial_s3_resource.key
         @partial_s3_resource = partial_s3_resource
       end
 
@@ -61,7 +62,7 @@ module Middleman
           s3_resource.merge_attributes(to_h)
           s3_resource.body = body
 
-          s3_resource.save
+          s3_resource.save unless options.dry_run
         }
       end
 
@@ -76,23 +77,23 @@ module Middleman
 
       def destroy!
         say_status ANSI.red { "Deleting" } + " " + remote_path
-        bucket.files.destroy remote_path
+        bucket.files.destroy remote_path unless options.dry_run
       end
 
       def create!
         say_status ANSI.green { "Creating" } + " #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
         local_content { |body|
-          bucket.files.create(to_h.merge(body: body))
+          bucket.files.create(to_h.merge(body: body)) unless options.dry_run
         }
       end
 
       def ignore!
-        reason = if redirect?
-                   :redirect
-                 elsif directory?
-                   :directory
-                 end
         if options.verbose
+          reason = if redirect?
+                     :redirect
+                   elsif directory?
+                     :directory
+                   end
           say_status ANSI.yellow {"Ignoring"} + " #{remote_path} #{ reason ? ANSI.white {"(#{reason})" } : "" }"
         end
       end
@@ -135,6 +136,8 @@ module Middleman
                     elsif local? && remote?
                       if options.force
                         :updated
+                      elsif not caching_policy_match?
+                        :updated
                       elsif local_object_md5 == remote_object_md5
                         :identical
                       else
@@ -155,8 +158,10 @@ module Middleman
                       :new
                     elsif remote? && redirect?
                       :ignored
-                    else
+                    elsif remote?
                       :deleted
+                    else
+                      :ignored
                     end
       end
 
@@ -205,12 +210,20 @@ module Middleman
       end
 
       def content_type
-        @content_type ||= options.content_types[path]
-        @content_type ||= MIME::Types.of(path).first
+        @content_type ||= Middleman::S3Sync.content_types[path]
+        @content_type ||= resources.content_type
       end
 
       def caching_policy
-        @caching_policy ||= options.caching_policy_for(content_type)
+        @caching_policy ||= Middleman::S3Sync.caching_policy_for(content_type)
+      end
+
+      def caching_policy_match?
+        if (caching_policy)
+          caching_policy.cache_control == full_s3_resource.cache_control
+        else
+          true
+        end
       end
 
       protected
