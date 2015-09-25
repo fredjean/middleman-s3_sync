@@ -156,8 +156,10 @@ module Middleman
                       :new
                     elsif remote? && redirect?
                       :ignored
-                    else
+                    elsif remote?
                       :deleted
+                    else
+                      :ignored
                     end
       end
 
