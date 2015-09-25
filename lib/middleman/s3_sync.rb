@@ -22,15 +22,15 @@ module Middleman
 
       attr_accessor :s3_sync_options
       attr_accessor :mm_resources
-      attr_accessor :app
+      attr_reader   :app
 
       def sync()
         unless work_to_be_done?
-          say_status "\nAll S3 files are up to date."
+          say_status "All S3 files are up to date."
           return
         end
 
-        say_status "\nReady to apply updates to #{s3_sync_options.bucket}."
+        say_status "Ready to apply updates to #{s3_sync_options.bucket}."
 
         update_bucket_versioning
 
@@ -39,7 +39,7 @@ module Middleman
         update_resources
         delete_resources
 
-        @app.run_hook :after_s3_sync, ignored: files_to_ignore.map(&:path),
+        app.run_hook :after_s3_sync, ignored: files_to_ignore.map(&:path),
                                       created: files_to_create.map(&:path),
                                       updated: files_to_update.map(&:path),
                                       deleted: files_to_delete.map(&:path)
@@ -61,6 +61,11 @@ module Middleman
 
       def remote_only_paths
         paths - s3_sync_resources.keys
+      end
+
+      def app=(app)
+        @app = app
+        @app.extend ::Middleman::S3SyncExtension::ClassMethods
       end
 
       protected

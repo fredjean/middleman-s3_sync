@@ -4,8 +4,6 @@ require 'map'
 
 module Middleman
   class S3SyncExtension < Extension
-    self.supports_multiple_instances = false
-
     # Options supported by the extension...
     option :prefix, nil, 'Path prefix of the resource we are looking for on the server.'
     option :http_prefix, nil, 'Path prefix of the resources'
@@ -30,6 +28,7 @@ module Middleman
       super
       app.define_hook :after_s3_sync
       app.extend ClassMethods
+      #::Middleman::S3Sync.app = app
     end
 
     def after_configuration

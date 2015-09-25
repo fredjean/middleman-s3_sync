@@ -2,7 +2,9 @@ require 'middleman-core/cli'
 
 module Middleman
   module Cli
-    class S3Sync < Thor::Group
+    Base.map("sync" => "s3_sync")
+
+    class S3Sync < Thor
       include Thor::Actions
 
       check_unknown_options!
@@ -13,6 +15,7 @@ module Middleman
         true
       end
 
+      desc "s3_sync [options]", "Synchronizes a middleman site to an AWS S3 bucket"
       class_option :force, type: :boolean,
         desc: "Push all local files to the server",
         aliases: '-f'
@@ -49,9 +52,5 @@ module Middleman
         ::Middleman::S3Sync.sync()
       end
     end
-
-    Base.register(Middleman::Cli::S3Sync, 's3_sync', 's3_sync [options]', "Deploys a middleman site to a S3 bucket")
-
-    Base.map("sync" => "s3_sync")
   end
 end
