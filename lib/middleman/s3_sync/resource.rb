@@ -88,12 +88,12 @@ module Middleman
       end
 
       def ignore!
-        reason = if redirect?
-                   :redirect
-                 elsif directory?
-                   :directory
-                 end
         if options.verbose
+          reason = if redirect?
+                     :redirect
+                   elsif directory?
+                     :directory
+                   end
           say_status ANSI.yellow {"Ignoring"} + " #{remote_path} #{ reason ? ANSI.white {"(#{reason})" } : "" }"
         end
       end
@@ -135,6 +135,8 @@ module Middleman
                       end
                     elsif local? && remote?
                       if options.force
+                        :updated
+                      elsif not caching_policy_match?
                         :updated
                       elsif local_object_md5 == remote_object_md5
                         :identical
@@ -213,6 +215,14 @@ module Middleman
 
       def caching_policy
         @caching_policy ||= Middleman::S3Sync.caching_policy_for(content_type)
+      end
+
+      def caching_policy_match?
+        if (caching_policy)
+          caching_policy.cache_control == full_s3_resource.cache_control
+        else
+          true
+        end
       end
 
       protected

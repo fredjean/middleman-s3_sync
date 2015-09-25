@@ -19,6 +19,7 @@ module Middleman
         @caching_policies ||= Map.new
       end
     end
+
     protected
     class BrowserCachePolicy
       attr_accessor :policies

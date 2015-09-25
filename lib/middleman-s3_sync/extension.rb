@@ -27,8 +27,8 @@ module Middleman
     def initialize(app, options_hash = {}, &block)
       super
       app.define_hook :after_s3_sync
-      app.extend ClassMethods
-      #::Middleman::S3Sync.app = app
+      # Temporary workaround for 3.3 and 3.4.
+      app.send :include, ClassMethods
     end
 
     def after_configuration
