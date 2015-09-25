@@ -1,3 +1,4 @@
+require 'fog/aws'
 require 'fog/aws/storage'
 require 'digest/md5'
 require 'middleman/s3_sync/version'

@@ -20,11 +20,10 @@ module Middleman
       end
     end
 
-    protected
     class BrowserCachePolicy
       attr_accessor :policies
 
-      def initialize(options)
+      def initialize(options = {})
         @policies = Map.from_hash(options)
       end
 

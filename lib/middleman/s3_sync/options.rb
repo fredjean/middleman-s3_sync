@@ -24,11 +24,6 @@ module Middleman
       ]
       attr_accessor *OPTIONS
 
-      def initialize
-        # read config from .s3_sync on initialization
-        self.read_config
-      end
-
       def acl
         @acl || 'public-read'
       end
@@ -79,7 +74,7 @@ module Middleman
       end
 
       def prefix
-        @prefix.blank? ? "" : "#{@prefix}/"
+        @prefix.nil? || @prefix.empty? ? "" : "#{@prefix}/"
       end
 
       def version_bucket
