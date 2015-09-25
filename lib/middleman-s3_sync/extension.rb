@@ -1,7 +1,5 @@
 require 'middleman-core'
 require 'middleman/s3_sync'
-require 'parallel'
-require 'ruby-progressbar'
 require 'map'
 
 module Middleman
@@ -45,10 +43,8 @@ module Middleman
       ::Middleman::S3Sync.sync() if options.after_build
     end
 
-    def manipulate_resource_list(resources)
-      Parallel.each(resources, in_threads: 8, progress: "Evaluating Resources") do |resource|
-        ::Middleman::S3Sync.add_local_resource(resource)
-      end
+    def manipulate_resource_list(mm_resources)
+      ::Middleman::S3Sync.mm_resources = mm_resources
     end
 
     def s3_sync_options

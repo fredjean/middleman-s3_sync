@@ -6,7 +6,10 @@ require 'middleman/s3_sync/caching_policy'
 require 'middleman/s3_sync/status'
 require 'middleman/s3_sync/resource'
 require 'middleman-s3_sync/extension'
-require 'thread'
+require 'parallel'
+require 'ruby-progressbar'
+
+require 'pry'
 
 module Middleman
   module S3Sync
@@ -18,6 +21,7 @@ module Middleman
       @@bucket_files_lock = Mutex.new
 
       attr_accessor :s3_sync_options
+      attr_accessor :mm_resources
       attr_accessor :app
 
       def sync()
@@ -52,11 +56,11 @@ module Middleman
       end
 
       def add_local_resource(mm_resource)
-        resources[mm_resource.destination_path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.destination_path)).tap(&:status)
+        s3_sync_resources[mm_resource.destination_path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.destination_path)).tap(&:status)
       end
 
       def remote_only_paths
-        paths - resources.keys
+        paths - s3_sync_resources.keys
       end
 
       protected
@@ -77,13 +81,13 @@ module Middleman
         bucket_files.find { |f| f.key == "#{s3_sync_options.prefix}#{path}" }
       end
 
-      def resources
-        @resource ||= {}
+      def s3_sync_resources
+        @s3_sync_resources ||= {}
       end
 
       def paths
         @paths ||= begin
-                     (remote_paths.map { |rp| rp.gsub(/^#{s3_sync_options.prefix}/, '')} + resources.keys).uniq.sort
+                     (remote_paths.map { |rp| rp.gsub(/^#{s3_sync_options.prefix}/, '')} + s3_sync_resources.keys).uniq.sort
                    end
       end
 
@@ -130,30 +134,35 @@ module Middleman
       end
 
       def work_to_be_done?
+        Parallel.each(mm_resources, in_threads: 8, progress: "Evaluating resources") { |mm_resource| add_local_resource(mm_resource) }
+
+        require 'pry'; binding.pry
+
+        Parallel.each(remote_only_paths, in_threads: 8, progress: "Evaluating files to delete") do |remote_path|
+          s3_sync_resources[remote_path] ||= S3Sync::Resource.new(nil, remote_resource_for_path(remote_path)).tap(&:status)
+        end
+
         !(files_to_create.empty? && files_to_update.empty? && files_to_delete.empty?)
       end
 
       def files_to_delete
-        @files_to_delete ||= if s3_sync_options.delete
-                               remote_only_paths.each do |remote_path|
-                                 resources[remote_path] ||= S3Sync::Resource.new(nil, remote_resource_for_path(remote_path)).tap(&:status)
-                               end
-                               resources.values.select { |r| r.to_delete? }
-                             else
-                               []
-                             end
+        if s3_sync_options.delete
+          s3_sync_resources.values.select { |r| r.to_delete? }
+        else
+          []
+        end
       end
 
       def files_to_create
-        @files_to_create ||= resources.values.select { |r| r.to_create? }
+        s3_sync_resources.values.select { |r| r.to_create? }
       end
 
       def files_to_update
-        @files_to_update ||= resources.values.select { |r| r.to_update? }
+        s3_sync_resources.values.select { |r| r.to_update? }
       end
 
       def files_to_ignore
-        @files_to_ignore ||= resources.values.select { |r| r.to_ignore? }
+        s3_sync_resources.values.select { |r| r.to_ignore? }
       end
 
       def build_dir
