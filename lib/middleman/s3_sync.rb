@@ -136,8 +136,6 @@ module Middleman
       def work_to_be_done?
         Parallel.each(mm_resources, in_threads: 8, progress: "Evaluating resources") { |mm_resource| add_local_resource(mm_resource) }
 
-        require 'pry'; binding.pry
-
         Parallel.each(remote_only_paths, in_threads: 8, progress: "Evaluating files to delete") do |remote_path|
           s3_sync_resources[remote_path] ||= S3Sync::Resource.new(nil, remote_resource_for_path(remote_path)).tap(&:status)
         end
