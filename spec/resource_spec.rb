@@ -8,7 +8,7 @@ describe Middleman::S3Sync::Resource do
 
   let(:mm_resource) {
     double(
-      path: 'path/to/resource.html'
+      destination_path: 'path/to/resource.html'
     )
   }
   before do
