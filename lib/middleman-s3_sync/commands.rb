@@ -33,7 +33,9 @@ module Middleman
         aliases: '-n'
 
       def s3_sync
-        ::Middleman::S3Sync.app = ::Middleman::Application.server.inst
+        ::Middleman::S3Sync.app = ::Middleman::Application.server.inst do
+          config[:environment] = :build
+        end
 
         s3_sync_options = ::Middleman::S3Sync.s3_sync_options
 

@@ -166,7 +166,7 @@ module Middleman
       end
 
       def local?
-        File.exist?(local_path)
+        File.exist?(local_path) && resource
       end
 
       def remote?
@@ -211,7 +211,7 @@ module Middleman
 
       def content_type
         @content_type ||= Middleman::S3Sync.content_types[path]
-        @content_type ||= resource.content_type
+        @content_type ||= resource ? resource.content_type : nil
       end
 
       def caching_policy
