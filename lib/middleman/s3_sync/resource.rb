@@ -210,8 +210,8 @@ module Middleman
       end
 
       def content_type
-        @content_type ||= Middleman::S3Sync.content_types[path]
-        @content_type ||= resource ? resource.content_type : nil
+        @content_type ||= Middleman::S3Sync.content_types[local_path]
+        @content_type ||= !resource.nil? ? resource.content_type : nil
       end
 
       def caching_policy
