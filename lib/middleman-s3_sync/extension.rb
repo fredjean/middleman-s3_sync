@@ -8,7 +8,7 @@ module Middleman
     option :prefix, nil, 'Path prefix of the resource we are looking for on the server.'
     option :http_prefix, nil, 'Path prefix of the resources'
     option :acl, 'public-read', 'ACL for the resources being pushed to S3'
-    option :bucket, 'nil', 'The name of the bucket we are pushing to.'
+    option :bucket, nil, 'The name of the bucket we are pushing to.'
     option :region, 'us-east-1', 'The name of the AWS region hosting the S3 bucket'
     option :aws_access_key_id, ENV['AWS_ACCESS_KEY_ID'] , 'The AWS access key id'
     option :aws_secret_access_key, ENV['AWS_SECRET_ACCESS_KEY'], 'The AWS secret access key'
@@ -35,6 +35,7 @@ module Middleman
       read_config
       options.aws_access_key_id ||= ENV['AWS_ACCESS_KEY_ID']
       options.aws_secret_access_key ||= ENV['AWS_SECRET_ACCESS_KEY']
+      options.bucket ||= ENV['AWS_BUCKET']
       options.http_prefix = app.http_prefix if app.respond_to? :http_prefix
       options.build_dir ||= app.build_dir if app.respond_to? :build_dir
       ::Middleman::S3Sync.s3_sync_options = s3_sync_options
