@@ -69,9 +69,9 @@ module Middleman
         io = File.open(config_file_path, "r")
       end
 
-      config = YAML.load(io).symbolize_keys
+      config = (YAML.load(io) || {}).symbolize_keys
 
-      OPTIONS.each do |config_option|
+      options.all_settings.map(&:key).each do |config_option|
         self.send("#{config_option}=".to_sym, config[config_option]) if config[config_option]
       end
     end
