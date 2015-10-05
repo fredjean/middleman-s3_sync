@@ -71,8 +71,8 @@ module Middleman
 
       config = (YAML.load(io) || {}).symbolize_keys
 
-      options.all_settings.map(&:key).each do |config_option|
-        self.send("#{config_option}=".to_sym, config[config_option]) if config[config_option]
+      config.each do |key, value|
+        options[key.to_sym] = value
       end
     end
 
