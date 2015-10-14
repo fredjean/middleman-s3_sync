@@ -50,7 +50,10 @@ module Middleman
         s3_sync_options.force = options[:force] if options[:force]
         s3_sync_options.bucket = options[:bucket] if options[:bucket]
         s3_sync_options.verbose = options[:verbose] if options[:verbose]
-        s3_sync_options.prefix  = options[:prefix] if options[:prefix]
+        if options[:prefix]
+          s3_sync_options.prefix  = options[:prefix] if options[:prefix]
+          s3_sync_options.prefix = s3_sync_options.prefix.end_with?("/") ? s3_sync_options.prefix : s3_sync_options.prefix + "/"
+        end
         s3_sync_options.dry_run = options[:dry_run] if options[:dry_run]
 
         ::Middleman::S3Sync.sync()
