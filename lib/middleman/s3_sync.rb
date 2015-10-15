@@ -25,6 +25,8 @@ module Middleman
       attr_reader   :app
 
       def sync()
+        @app ||= ::Middleman::Application.server.inst
+
         say_status "Let's see if there's work to be done..."
         unless work_to_be_done?
           say_status "All S3 files are up to date."
