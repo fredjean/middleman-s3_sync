@@ -58,7 +58,7 @@ module Middleman
 
       def update!
         local_content { |body|
-          say_status ANSI.blue{"Updating"} + " #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
+          say_status "#{ANSI.blue{"Updating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
           s3_resource.merge_attributes(to_h)
           s3_resource.body = body
 
@@ -76,12 +76,12 @@ module Middleman
       end
 
       def destroy!
-        say_status ANSI.red { "Deleting" } + " " + remote_path
+        say_status "#{ANSI.red{"Deleting"}} #{remote_path}"
         bucket.files.destroy remote_path unless options.dry_run
       end
 
       def create!
-        say_status ANSI.green { "Creating" } + " #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
+        say_status "#{ANSI.green{"Creating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
         local_content { |body|
           bucket.files.create(to_h.merge(body: body)) unless options.dry_run
         }
@@ -94,7 +94,7 @@ module Middleman
                    elsif directory?
                      :directory
                    end
-          say_status ANSI.yellow {"Ignoring"} + " #{remote_path} #{ reason ? ANSI.white {"(#{reason})" } : "" }"
+          say_status "#{ANSI.yellow{"Ignoring"}} #{remote_path} #{ reason ? ANSI.white {"(#{reason})" } : "" }"
         end
       end
 
@@ -174,7 +174,7 @@ module Middleman
       end
 
       def redirect?
-        full_s3_resource.metadata.has_key?('x-amz-website-redirect-location')
+        full_s3_resource && full_s3_resource.metadata.has_key?('x-amz-website-redirect-location')
       end
 
       def directory?
@@ -232,7 +232,7 @@ module Middleman
       end
 
       def build_dir
-        options.build_dir
+        options.build_dir || 'build'
       end
 
       def options
