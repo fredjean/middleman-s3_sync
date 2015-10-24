@@ -3,7 +3,7 @@ require 'middleman/s3_sync'
 require 'map'
 
 module Middleman
-  class S3SyncExtension < Extension
+  class S3SyncExtension < ::Middleman::Extension
     # Options supported by the extension...
     option :prefix, nil, 'Path prefix of the resource we are looking for on the server.'
     option :http_prefix, nil, 'Path prefix of the resources'
@@ -26,9 +26,6 @@ module Middleman
 
     def initialize(app, options_hash = {}, &block)
       super
-      app.define_hook :after_s3_sync
-      # Temporary workaround for 3.3 and 3.4.
-      app.send :include, ClassMethods
     end
 
     def after_configuration
@@ -94,7 +91,4 @@ module Middleman
       end
     end
   end
-
-  ::Middleman::Extensions.register(:s3_sync, S3SyncExtension)
 end
-

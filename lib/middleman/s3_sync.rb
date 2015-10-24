@@ -25,7 +25,7 @@ module Middleman
       attr_reader   :app
 
       def sync()
-        @app ||= ::Middleman::Application.server.inst
+        @app ||= ::Middleman::Application.new
 
         say_status "Let's see if there's work to be done..."
         unless work_to_be_done?
@@ -41,11 +41,6 @@ module Middleman
         create_resources
         update_resources
         delete_resources
-
-        app.run_hook :after_s3_sync, ignored: files_to_ignore.map(&:path),
-                                      created: files_to_create.map(&:path),
-                                      updated: files_to_update.map(&:path),
-                                      deleted: files_to_delete.map(&:path)
       end
 
       def bucket
