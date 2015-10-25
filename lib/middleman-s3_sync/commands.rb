@@ -20,10 +20,25 @@ module Middleman
                    default: ENV['MM_ENV'] || ENV['RACK_ENV'] || 'production',
                    desc: 'The environment to deploy.'
 
+      class_option :build,
+                   type: :boolean,
+                   aliases: '-B',
+                   desc: 'Run `middleman build` before the sync step'
+
       class_option :force,
                    aliases: '-f',
                    type: :boolean,
                    desc: 'Push all local files to the server.'
+
+      class_option :aws_access_key_id,
+                   aliases: '-k',
+                   type: :string,
+                   desc: 'Specify aws_access_key_id, and overrides the configured value.'
+
+      class_option :aws_secret_access_key,
+                   aliases: '-s',
+                   type: :string,
+                   desc: 'Specify aws_secret_access_key, and overrides the configured value.'
 
       class_option :bucket,
                    aliases: '-b',
@@ -61,6 +76,8 @@ module Middleman
           ::Middleman::Logger.singleton(verbose, instrument)
         end
 
+        build(options)
+
         s3_sync_options = ::Middleman::S3Sync.s3_sync_options
 
         bucket = s3_sync_options.bucket rescue nil
@@ -71,6 +88,8 @@ module Middleman
 
         # Override options based on what was passed on the command line...
         s3_sync_options.force = options[:force] if options[:force]
+        s3_sync_options.aws_access_key_id = options[:aws_access_key_id] if options[:aws_access_key_id]
+        s3_sync_options.aws_secret_access_key = options[:aws_secret_access_key] if options[:aws_secret_access_key]
         s3_sync_options.bucket = options[:bucket] if options[:bucket]
         s3_sync_options.verbose = options[:verbose] if options[:verbose]
         if options[:prefix]
@@ -80,6 +99,12 @@ module Middleman
         s3_sync_options.dry_run = options[:dry_run] if options[:dry_run]
 
         ::Middleman::S3Sync.sync()
+      end
+
+      def build(options = {})
+        if options[:build]
+          run("middleman build -e #{options[:environment]}") || exit(1)
+        end
       end
     end
 
