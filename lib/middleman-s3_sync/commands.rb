@@ -30,6 +30,16 @@ module Middleman
                    type: :boolean,
                    desc: 'Push all local files to the server.'
 
+      class_option :aws_access_key_id,
+                   aliases: '-k',
+                   type: :string,
+                   desc: 'Specify aws_access_key_id, and overrides the configured value.'
+
+      class_option :aws_secret_access_key,
+                   aliases: '-s',
+                   type: :string,
+                   desc: 'Specify aws_secret_access_key, and overrides the configured value.'
+
       class_option :bucket,
                    aliases: '-b',
                    type: :string,
@@ -78,6 +88,8 @@ module Middleman
 
         # Override options based on what was passed on the command line...
         s3_sync_options.force = options[:force] if options[:force]
+        s3_sync_options.aws_access_key_id = options[:aws_access_key_id] if options[:aws_access_key_id]
+        s3_sync_options.aws_secret_access_key = options[:aws_secret_access_key] if options[:aws_secret_access_key]
         s3_sync_options.bucket = options[:bucket] if options[:bucket]
         s3_sync_options.verbose = options[:verbose] if options[:verbose]
         if options[:prefix]
