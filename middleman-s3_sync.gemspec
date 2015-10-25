@@ -19,6 +19,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_runtime_dependency 'middleman-core', '>= 4.0.0.rc.1'
+  gem.add_runtime_dependency 'middleman-cli'
   gem.add_runtime_dependency 'unf'
   gem.add_runtime_dependency 'fog-aws', '>= 0.1.1'
   gem.add_runtime_dependency 'map'
