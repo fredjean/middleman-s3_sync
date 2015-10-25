@@ -20,6 +20,11 @@ module Middleman
                    default: ENV['MM_ENV'] || ENV['RACK_ENV'] || 'production',
                    desc: 'The environment to deploy.'
 
+      class_option :build,
+                   type: :boolean,
+                   aliases: '-B',
+                   desc: 'Run `middleman build` before the sync step'
+
       class_option :force,
                    aliases: '-f',
                    type: :boolean,
@@ -61,6 +66,8 @@ module Middleman
           ::Middleman::Logger.singleton(verbose, instrument)
         end
 
+        build(options)
+
         s3_sync_options = ::Middleman::S3Sync.s3_sync_options
 
         bucket = s3_sync_options.bucket rescue nil
@@ -80,6 +87,12 @@ module Middleman
         s3_sync_options.dry_run = options[:dry_run] if options[:dry_run]
 
         ::Middleman::S3Sync.sync()
+      end
+
+      def build(options = {})
+        if options[:build]
+          run("middleman build -e #{options[:environment]}") || exit(1)
+        end
       end
     end
 
