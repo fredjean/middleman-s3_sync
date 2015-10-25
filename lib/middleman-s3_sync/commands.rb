@@ -1,4 +1,4 @@
-require 'middleman-core/cli'
+require 'middleman-cli'
 
 module Middleman
   module Cli

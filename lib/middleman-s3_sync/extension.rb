@@ -24,6 +24,9 @@ module Middleman
     option :verbose, false, 'Whether to provide more verbose output'
     option :dry_run, false, 'Whether to perform a dry-run'
 
+    # S3Sync must be the last action in the manipulator chain
+    self.resource_list_manipulator_priority = 9999
+
     def initialize(app, options_hash = {}, &block)
       super
     end
