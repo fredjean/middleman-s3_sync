@@ -2,6 +2,22 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v4.0.1
+
+* Fix order of manipulator chain so that S3 Sync is always the last action
+* Add --aws_access_key_id / --aws_secret_access_key as command line switches
+* Add --build command line switch, which triggers a build before syncing
+* Bump dependency version of middleman-core to 4.0.0.rc.1
+
+## v4.0.0
+
+* Initial support for Middleman v4
+* Fix errors related to ANSI format on Windows
+* Fix null reference errors in resource class
+* Add --environment and --instrument command line switches
+* Remove duplicate extension registration
+* Remove after_s3_sync hook as hooks are no longer supported in Middleman v4
+
 ## v3.0.22
 
 * Fixes a bug where files were not closed, leading to an exhaustion of 
