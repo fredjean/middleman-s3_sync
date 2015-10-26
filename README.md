@@ -121,7 +121,13 @@ method or passed through the ```.s3_sync``` configuration file.
 
 #### Through IAM role
 
-Alternatively, if you are running builds on EC2 instance which has approrpiate IAM role, then you don't need to think about specifying credentials at all – they will be pulled from AWS metadata server.
+Alternatively, if you are running builds on EC2 instance which has approrpiate IAM role, then you don't need to think about specifying credentials at all – they will be pulled from AWS metadata service.
+
+#### Through the command line
+
+The aws credentials can also be passed via a command line options
+`--aws_access_key_id` and `aws_secret_access_key`. They should override
+any other settings if specified.
 
 ### IAM Policy
 
@@ -168,6 +174,30 @@ You can override the destination prefix using the `--prefix` switch. The
 command is:
 
     $ middleman s3_sync --prefix=my/new/prefix
+
+## Specify a Middleman environment
+
+You can specify which environment to run Middleman under using the
+`--environment` option:
+
+    $ middleman s3_sync --environment=build
+
+## Dry Run
+
+You can perform a dry run to see what would be the result of a sync
+operation using the `--dry_run` option:
+
+    $ middleman s3_sync --dry_run
+
+## Print instrument messages
+
+The `--instrument` option will output more information about Middleman
+and s3_sync.
+
+## Run build before synchronizing
+
+The `--build` option will ensure that Middleman build is run before the
+synchronization with the S3 bucket.
 
 ## Pushing to a folder within a bucket
 
