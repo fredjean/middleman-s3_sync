@@ -6,13 +6,18 @@ This gem determines which files need to be added, updated and optionally deleted
 and only transfer these files up. This reduces the impact of an update
 on a web site hosted on S3.
 
-## Why not Middleman Sync?
+#### Why not Middleman Sync?
 
 [Middleman Sync](https://github.com/karlfreeman/middleman-sync) does a
 great job to push [Middleman](http://middlemanapp.com)  generated
 websites to S3. The only issue I have with it is that it pushes
 every files under build to S3 and doesn't seem to properly delete files
 that are no longer needed.
+
+#### Version Support
+
+* Use middleman-s3_sync version 4.x for Middleman 4.x
+* Use middleman-s3_sync version 3.x for Middleman 3.x
 
 ## Installation
 
@@ -52,15 +57,15 @@ end
 
 You can then start synchronizing files with S3 through ```middleman s3_sync```.
 
-### Configuration Defaults
+#### Configuration Defaults
 
 The following defaults apply to the configuration items:
 
 | Setting                    | Default                            |
 | -----------------          | ----------------------------       |
-| aws_access_key_id          | ```ENV['AWS_ACCESS_KEY_ID']```     |
-| aws_secret_access_key      | ```ENV['AWS_SECRET_ACCESS_KEY']``` |
-| bucket                     | ```ENV['AWS_BUCKET']```            |
+| aws_access_key_id          | -                                  |
+| aws_secret_access_key      | -                                  |
+| bucket                     | -                                  |
 | delete                     | ```true```                         |
 | after_build                | ```false```                        |
 | prefer_gzip                | ```true```                         |
@@ -70,20 +75,11 @@ The following defaults apply to the configuration items:
 | acl                        | ```'public-read'```                |
 | version_bucket             | ```false```                        |
 
-You do not need to specify the settings that match the defaults. This
-simplify the configuration of the extension:
+## Setting AWS Credentials
 
-```ruby
-activate :s3_sync do |s3_sync|
-  s3_sync.bucket = 'my.bucket.com'
-end
-```
+There are several ways to provide the AWS credentials for s3_sync:
 
-### Providing AWS Credentials
-
-There are a few ways to provide the AWS credentials for s3_sync:
-
-#### Through ```config.rb```
+#### Through `config.rb`
 
 You can set the aws_access_key_id and aws_secret_access_key in the block
 that is passed to the activate method.
@@ -91,19 +87,25 @@ that is passed to the activate method.
 > I strongly discourage using this method. This will lead you to add and commit these changes
 > to your SCM and potentially expose sensitive information to the world.
 
-#### Through ```.s3_sync``` File
+#### Through `.s3_sync` File
 
-You can create a ```.s3_sync``` at the root of your middleman project.
+You can create a `.s3_sync` at the root of your middleman project.
 The credentials are passed in the YAML format. The keys match the
 options keys.
 
 The .s3_sync file takes precedence to the configuration passed in the
 activate method.
 
-A sample ```.s3_sync``` file is included at the root of this repo.
+A sample `.s3_sync` file is included at the root of this repo.
 
 > Make sure to add .s3_sync to your ignore list if you choose this approach. Not doing so may expose
 > credentials to the world.
+
+#### Through the Command Line
+
+The aws credentials can also be passed via a command line options
+`--aws_access_key_id` (`-k`) and `--aws_secret_access_key` (`-s`). They should override
+any other settings if specified.
 
 #### Through Environment
 
@@ -123,13 +125,7 @@ method or passed through the ```.s3_sync``` configuration file.
 
 Alternatively, if you are running builds on EC2 instance which has approrpiate IAM role, then you don't need to think about specifying credentials at all – they will be pulled from AWS metadata service.
 
-#### Through the command line
-
-The aws credentials can also be passed via a command line options
-`--aws_access_key_id` and `aws_secret_access_key`. They should override
-any other settings if specified.
-
-### IAM Policy
+#### IAM Policy
 
 Here's a sample IAM policy that will allow a user to update the site
 contained in a bucket named "mysite.com":
@@ -154,52 +150,56 @@ contained in a bucket named "mysite.com":
 
 This will give full access to both the bucket and it's contents.
 
-## Push All Content to S3
+## Command Line Usage
+
+#### Push All Content to S3
 
 There are situations where you might need to push the files to S3. In
-such case, you can pass the ```--force``` option:
+such case, you can pass the `--force` (`-f`) option:
 
     $ middleman s3_sync --force
 
-## Overriding the destination bucket
+#### Overriding the destination bucket
 
-You can override the destination bucket using the --bucket switch.
+You can override the destination bucket using the `--bucket` (`-b`) switch.
 The command is:
 
     $ middleman s3_sync --bucket=my.new.bucket
 
-## Overriding the destination prefix
+#### Overriding the destination prefix
 
-You can override the destination prefix using the `--prefix` switch. The
+You can override the destination prefix using the `--prefix` (`-p`) switch. The
 command is:
 
     $ middleman s3_sync --prefix=my/new/prefix
 
-## Specify a Middleman environment
+#### Specify a Middleman environment
 
 You can specify which environment to run Middleman under using the
-`--environment` option:
+`--environment` (`-e`) option:
 
-    $ middleman s3_sync --environment=build
+    $ middleman s3_sync --environment=production
 
-## Dry Run
+#### Dry Run
 
 You can perform a dry run to see what would be the result of a sync
-operation using the `--dry_run` option:
+operation using the `--dry_run` (`-d`) option:
 
     $ middleman s3_sync --dry_run
 
-## Print instrument messages
+#### Print instrument messages
 
-The `--instrument` option will output more information about Middleman
+The `--instrument` (`-i`) option will output more information about Middleman
 and s3_sync.
 
-## Run build before synchronizing
+#### Run build before synchronizing
 
-The `--build` option will ensure that Middleman build is run before the
+The `--build` (`-B`) option will ensure that Middleman build is run before the
 synchronization with the S3 bucket.
 
-## Pushing to a folder within a bucket
+## AWS Configuration
+
+#### Pushing to a folder within a bucket
 
 You can push to a folder within an S3 bucket by adding using the prefix
 option in the config block:
@@ -211,24 +211,24 @@ activate :s3_sync do |s3_sync|
 end
 ```
 
-## Bucket Versioning
+#### Bucket Versioning
 
-You can enable bucket versioning by setting the ```version_bucket```
+You can enable bucket versioning by setting the `version_bucket`
 setting to true within the bucket configuration.
 
 Versioning is enabled at the bucket level, not at the object level.
 
 You can [find out more about versioning here](https://aws.amazon.com/about-aws/whats-new/2010/02/08/versioning-feature-for-amazon-s3-now-available/).
 
-## HTTP Caching
+#### HTTP Caching
 
-By default, ```middleman-s3_sync``` does not set caching headers. In
+By default, `middleman-s3_sync` does not set caching headers. In
 general, the default settings are sufficient. However, there are
 situations where you might want to set a different HTTP caching policy.
-This may be very helpful if you are using the ```asset_hash```
+This may be very helpful if you are using the `asset_hash`
 extension.
 
-### Setting a policy based on the mime-type of a file
+#### Setting a policy based on the mime-type of a file
 
 You can set a caching policy for every files that match a certain
 mime-type. For example, setting max-age to 0 and kindly asking the
@@ -241,7 +241,7 @@ caching_policy 'text/html', max_age: 0, must_revalidate: true
 
 As a result, the following ```Cache-Control``` header would be set to ```max-age:0, must-revalidate```
 
-### Setting a Default Policy
+#### Setting a Default Policy
 
 You can set the default policy by passing an options hash to ```default_caching_policy``` in your ```config.rb``` file after the ```activate :s3_sync ... end``` block:
 
@@ -252,7 +252,7 @@ default_caching_policy max_age:(60 * 60 * 24 * 365)
 This will apply the policy to any file that do not have a mime-type
 specific policy.
 
-### Caching Policies
+#### Caching Policies
 
 The [Caching Tutorial](http://www.mnot.net/cache_docs/) is a great
 introduction to HTTP caching. The caching policy code in this gem is
@@ -271,7 +271,7 @@ The following keys can be set:
 | `must_revalidate`  | boolean | `must-revalidate`  | Tells the caches that they must obey any freshness information you give them about a representation.                                   |
 | `proxy_revalidate` | boolean | `proxy-revalidate` | Similar as `must-revalidate`, but only for proxies.                                                                                    |
 
-### Setting `Expires` Header
+#### Setting `Expires` Header
 
 You can pass the `expires` key to the `caching_policy` and
 `default_caching_policy` methods if you insist on setting the expires
@@ -281,7 +281,7 @@ when the resourse is set to expire.
 > Note that the `Cache-Control` header will take precedence over the
 > `Expires` header if both are present.
 
-### A Note About Browser Caching
+#### A Note About Browser Caching
 
 Browser caching is well specified. It hasn't always been the case.
 Still, even modern browsers have different behaviors if it suits it's
@@ -291,7 +291,7 @@ are (I'm looking at you Chrome!). Setting the `Cache-Control` or
 that stand between them and your content will behave the way you want
 them to. YMMV.
 
-### Path Specific Content Type
+#### Path Specific Content Type
 
 You can now set the content type of a path through the
 ```s3_sync.content_types``` hash. This hasi will take precendence over
@@ -299,7 +299,7 @@ the content type discovered by the mime_types gem. The [associated pull
 request](https://github.com/fredjean/middleman-s3_sync/pull/87) has a
 few good examples on how to use this feature.
 
-### ACLs
+#### ACLs
 
 ```middleman-s3_sync``` will set the resources's ACL to ```public-read``` by default. You
 can specificy a different ACL via the ```acl``` configuration option.
@@ -316,7 +316,7 @@ The full values and their semantics are [documented on AWS's
 documentation
 site](http://docs.aws.amazon.com/AmazonS3/latest/dev/ACLOverview.html#CannedACL).
 
-### Encryption
+#### Encryption
 
 You can ask Amazon to encrypt your files at rest by setting the
 ```encryption``` option to true. [Server side encryption is documented
@@ -324,7 +324,7 @@ on the AWS documentation
 site](http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html)
 .
 
-### GZipped Content Encoding
+#### GZipped Content Encoding
 
 You can set the ```prefer_gzip``` option to look for a gzipped version
 of a resource. The gzipped version of the resource will be pushed to S3
