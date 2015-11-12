@@ -21,7 +21,9 @@ module Middleman
         :version_bucket,
         :dry_run,
         :verbose,
-        :content_types
+        :content_types,
+        :index_suffix,
+        :error_document
       ]
       attr_accessor *OPTIONS
 

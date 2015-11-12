@@ -37,6 +37,8 @@ module Middleman
 
         update_bucket_versioning
 
+        update_bucket_website
+
         ignore_resources
         create_resources
         update_resources
@@ -73,6 +75,17 @@ module Middleman
       protected
       def update_bucket_versioning
         connection.put_bucket_versioning(s3_sync_options.bucket, "Enabled") if s3_sync_options.version_bucket
+      end
+
+      def update_bucket_website
+        opts = {}
+        opts[:ErrorDocument] = s3_sync_options.error_document unless s3_sync_options.error_document.nil?
+        opts[:IndexDocument] = s3_sync_options.index_suffix unless s3_sync_options.index_suffix.nil?
+        unless opts.empty?
+          opts[:IndexDocument] ||= 'index.html' # IndexDocument is mandatory in put_bucket_website
+          say_status "Putting bucket website: #{opts.to_json}"
+          connection.put_bucket_website(s3_sync_options.bucket, opts)
+        end
       end
 
       def connection
@@ -185,4 +198,3 @@ module Middleman
     end
   end
 end
-
