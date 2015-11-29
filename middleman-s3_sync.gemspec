@@ -20,7 +20,8 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'middleman-core', '~> 3.3'
   gem.add_runtime_dependency 'unf'
-  gem.add_runtime_dependency 'fog-aws', '>= 0.1.1'
+  gem.add_runtime_dependency 'mime-types', '>= 3.0'
+  gem.add_runtime_dependency 'fog-aws', '>= 0.7.0'
   gem.add_runtime_dependency 'map'
   gem.add_runtime_dependency 'parallel'
   gem.add_runtime_dependency 'ruby-progressbar'
