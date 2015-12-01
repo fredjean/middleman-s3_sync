@@ -23,8 +23,8 @@ module Middleman
     option :version_bucket, false, 'Whether to enable versionning on the S3 bucket content'
     option :verbose, false, 'Whether to provide more verbose output'
     option :dry_run, false, 'Whether to perform a dry-run'
-    option :index_suffix, nil, 'Path of S3 directory index document'
-    option :error_document, nil, 'Path of S3 custom error document'
+    option :index_document, nil, 'S3 custom index document path'
+    option :error_document, nil, 'S3 custom error document path'
 
     # S3Sync must be the last action in the manipulator chain
     self.resource_list_manipulator_priority = 9999

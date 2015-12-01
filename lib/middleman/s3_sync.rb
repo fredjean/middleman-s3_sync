@@ -79,10 +79,14 @@ module Middleman
 
       def update_bucket_website
         opts = {}
-        opts[:ErrorDocument] = s3_sync_options.error_document unless s3_sync_options.error_document.nil?
-        opts[:IndexDocument] = s3_sync_options.index_suffix unless s3_sync_options.index_suffix.nil?
+        opts[:IndexDocument] = s3_sync_options.index_document if s3_sync_options.index_document
+        opts[:ErrorDocument] = s3_sync_options.error_document if s3_sync_options.error_document
+
+        if opts[:ErrorDocument] && !opts[:IndexDocument]
+          raise 'S3 requires `index_document` if `error_document` is specified'
+        end
+
         unless opts.empty?
-          opts[:IndexDocument] ||= 'index.html' # IndexDocument is mandatory in put_bucket_website
           say_status "Putting bucket website: #{opts.to_json}"
           connection.put_bucket_website(s3_sync_options.bucket, opts)
         end

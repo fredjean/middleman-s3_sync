@@ -22,7 +22,7 @@ module Middleman
         :dry_run,
         :verbose,
         :content_types,
-        :index_suffix,
+        :index_document,
         :error_document
       ]
       attr_accessor *OPTIONS
