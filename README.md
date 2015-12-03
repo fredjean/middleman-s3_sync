@@ -52,8 +52,8 @@ activate :s3_sync do |s3_sync|
   s3_sync.encryption                 = false
   s3_sync.prefix                     = ''
   s3_sync.version_bucket             = false
+  s3_sync.index_document             = 'index.html'
   s3_sync.error_document             = '404.html'
-  s3_sync.index_suffix               = 'index.html'
 end
 ```
 
@@ -76,7 +76,6 @@ The following defaults apply to the configuration items:
 | encryption                 | ```false```                        |
 | acl                        | ```'public-read'```                |
 | version_bucket             | ```false```                        |
-| index_suffix               | ```index.html```                   |
 
 ## Setting AWS Credentials
 
@@ -336,11 +335,11 @@ headers will be set correctly. This will cause Amazon to serve the
 compressed version of the resource. In order for this to work, you need to
 have the `:gzip` extension activated in your `config.rb`.
 
-#### Custom index suffix and error document
+#### Custom S3 Index and Error Documents
 
-You can enable a custom [index suffix](http://docs.aws.amazon.com/AmazonS3/latest/dev/IndexDocumentSupport.html)
+You can enable a custom [index document](http://docs.aws.amazon.com/AmazonS3/latest/dev/IndexDocumentSupport.html)
 and [error document](http://docs.aws.amazon.com/AmazonS3/latest/dev/CustomErrorDocSupport.html)
-settings. The ```index_suffix``` option tells which file name gets used as
+settings. The ```index_document``` option tells which file name gets used as
 the index document of a directory (typically, ```index.html```), while
 ```error_document``` specifies the document to display for 4xx errors (ie,
 the 404 page).
