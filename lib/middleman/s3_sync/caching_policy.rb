@@ -8,7 +8,7 @@ module Middleman
       end
 
       def caching_policy_for(content_type)
-        caching_policies.fetch(content_type.to_s, caching_policies[:default])
+        caching_policies.fetch(content_type.to_s.split(';').first.strip, caching_policies[:default])
       end
 
       def default_caching_policy
