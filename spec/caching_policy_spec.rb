@@ -96,3 +96,18 @@ describe "Storing and retrieving policies" do
     expect(policy.policies.max_age).to eq(300)
   end
 end
+
+describe "Handling situations where the content type is nil" do
+  class CachingPolicy
+    include Middleman::S3Sync::CachingPolicy
+  end
+
+  let(:caching_policy) { CachingPolicy.new }
+
+  it "returns the default caching policy when the content type is nil" do
+    caching_policy.add_caching_policy(:default, max_age:(60 * 60 * 24 * 365))
+
+    expect(caching_policy.caching_policy_for(nil)).to_not be_nil
+    expect(caching_policy.caching_policy_for(nil).policies[:max_age]).to eq(60 * 60 * 24 * 365)
+  end
+end
