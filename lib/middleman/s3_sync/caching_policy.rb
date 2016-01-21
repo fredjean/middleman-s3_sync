@@ -8,7 +8,7 @@ module Middleman
       end
 
       def caching_policy_for(content_type)
-        return default_caching_policy unless content_type
+        return default_caching_policy if content_type.nil? || content_type.empty?
         caching_policies.fetch(content_type.to_s.split(';').first.strip, caching_policies[:default])
       end
 

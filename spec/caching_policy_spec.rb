@@ -110,4 +110,11 @@ describe "Handling situations where the content type is nil" do
     expect(caching_policy.caching_policy_for(nil)).to_not be_nil
     expect(caching_policy.caching_policy_for(nil).policies[:max_age]).to eq(60 * 60 * 24 * 365)
   end
+
+  it "returns the default caching policy when the content type is blank" do
+    caching_policy.add_caching_policy(:default, max_age:(60 * 60 * 24 * 365))
+
+    expect(caching_policy.caching_policy_for("")).to_not be_nil
+    expect(caching_policy.caching_policy_for("").policies[:max_age]).to eq(60 * 60 * 24 * 365)
+  end
 end
