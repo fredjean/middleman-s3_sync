@@ -65,7 +65,6 @@ module Middleman
 
       def app=(app)
         @app = app
-        @app.extend ::Middleman::S3SyncExtension::ClassMethods
       end
 
       def content_types

@@ -26,6 +26,8 @@ module Middleman
     option :index_document, nil, 'S3 custom index document path'
     option :error_document, nil, 'S3 custom error document path'
 
+    expose_to_config :s3_sync_options, :default_caching_policy, :caching_policy
+
     # S3Sync must be the last action in the manipulator chain
     self.resource_list_manipulator_priority = 9999
 
@@ -81,19 +83,12 @@ module Middleman
       end
     end
 
+    def default_caching_policy(policy = {})
+      ::Middleman::S3Sync.add_caching_policy(:default, policy)
+    end
 
-    module ClassMethods
-      def s3_sync_options
-        ::Middleman::S3SyncExtension.s3_sync_options
-      end
-
-      def default_caching_policy(policy = {})
-        ::Middleman::S3Sync.add_caching_policy(:default, policy)
-      end
-
-      def caching_policy(content_type, policy = {})
-        ::Middleman::S3Sync.add_caching_policy(content_type, policy)
-      end
+    def caching_policy(content_type, policy = {})
+      ::Middleman::S3Sync.add_caching_policy(content_type, policy)
     end
   end
 end
