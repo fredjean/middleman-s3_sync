@@ -44,6 +44,7 @@ module Middleman
       options.build_dir ||= app.build_dir if app.respond_to? :build_dir
       if options.prefix
         options.prefix = options.prefix.end_with?("/") ? options.prefix : options.prefix + "/"
+        options.prefix = "" if options.prefix == "/"
       end
       ::Middleman::S3Sync.s3_sync_options = s3_sync_options
     end
