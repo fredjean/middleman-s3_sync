@@ -39,7 +39,7 @@ You need to add the following code to your ```config.rb``` file:
 
 ```ruby
 activate :s3_sync do |s3_sync|
-  s3_sync.bucket                     = 'my.bucket.com' # The name of the S3 bucket you are targetting. This is globally unique.
+  s3_sync.bucket                     = 'my.bucket.com' # The name of the S3 bucket you are targeting. This is globally unique.
   s3_sync.region                     = 'us-west-1'     # The AWS region for your bucket.
   s3_sync.aws_access_key_id          = 'AWS KEY ID'
   s3_sync.aws_secret_access_key      = 'AWS SECRET KEY'
@@ -181,6 +181,19 @@ You can specify which environment to run Middleman under using the
 `--environment` (`-e`) option:
 
     $ middleman s3_sync --environment=production
+
+You can set up separate sync environments in config.rb like this: 
+
+```ruby
+	configure :staging do
+		activate :s3_sync do |s3_sync|
+			s3_sync.bucket = '<bucket'
+			... 
+    	end
+    end
+```
+    
+See the Usage section above for all the s3_sync. options to include. Currently, the .s3_sync file does not allow separate environments.
 
 #### Dry Run
 
