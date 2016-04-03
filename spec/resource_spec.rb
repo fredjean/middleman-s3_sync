@@ -25,7 +25,7 @@ describe Middleman::S3Sync::Resource do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(true)
       end
 
-      its(:status) { should eq :new }
+      its(:status) { is_expected.to eq :new }
 
       it "does not have a remote equivalent" do
         expect(resource).not_to be_remote
@@ -35,9 +35,9 @@ describe Middleman::S3Sync::Resource do
         expect(resource).to be_local
       end
 
-      its(:path) { should eq 'path/to/resource.html'}
-      its(:local_path) { should eq 'build/path/to/resource.html' }
-      its(:remote_path) { should eq 'path/to/resource.html' }
+      its(:path) { is_expected.to eq 'path/to/resource.html'}
+      its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
     end
 
     context "with a prefix set" do
@@ -54,9 +54,9 @@ describe Middleman::S3Sync::Resource do
         expect(resource).to be_local
       end
 
-      its(:path) { should eq 'path/to/resource.html' }
-      its(:local_path) { should eq 'build/path/to/resource.html' }
-      its(:remote_path) { should eq 'bob/path/to/resource.html' }
+      its(:path) { is_expected.to eq 'path/to/resource.html' }
+      its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq 'bob/path/to/resource.html' }
     end
 
     context "gzipped" do
@@ -73,9 +73,9 @@ describe Middleman::S3Sync::Resource do
         expect(resource).to be_local
       end
 
-      its(:path) { should eq 'path/to/resource.html' }
-      its(:local_path) { should eq 'build/path/to/resource.html.gz' }
-      its(:remote_path) { should eq 'path/to/resource.html' }
+      its(:path) { is_expected.to eq 'path/to/resource.html' }
+      its(:local_path) { is_expected.to eq 'build/path/to/resource.html.gz' }
+      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
     end
   end
 
@@ -98,7 +98,7 @@ describe Middleman::S3Sync::Resource do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(false)
       end
 
-      its(:status) { should eq :deleted }
+      its(:status) { is_expected.to eq :deleted }
       it "does not have a remote equivalent" do
         expect(resource).to be_remote
       end
@@ -107,9 +107,9 @@ describe Middleman::S3Sync::Resource do
         expect(resource).not_to be_local
       end
 
-      its(:path) { should eq 'path/to/resource.html'}
-      its(:local_path) { should eq 'build/path/to/resource.html' }
-      its(:remote_path) { should eq 'path/to/resource.html' }
+      its(:path) { is_expected.to eq 'path/to/resource.html'}
+      its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
     end
 
     context "with a prefix set" do
@@ -119,7 +119,7 @@ describe Middleman::S3Sync::Resource do
         options.prefix = "bob"
       end
 
-      its(:status) { should eq :deleted }
+      its(:status) { is_expected.to eq :deleted }
       it "does not have a remote equivalent" do
         expect(resource).to be_remote
       end
@@ -128,9 +128,9 @@ describe Middleman::S3Sync::Resource do
         expect(resource).not_to be_local
       end
 
-      its(:path) { should eq 'path/to/resource.html' }
-      its(:local_path) { should eq 'build/path/to/resource.html' }
-      its(:remote_path) { should eq 'bob/path/to/resource.html' }
+      its(:path) { is_expected.to eq 'path/to/resource.html' }
+      its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq 'bob/path/to/resource.html' }
     end
 
     context "gzipped" do
@@ -140,7 +140,7 @@ describe Middleman::S3Sync::Resource do
         options.prefer_gzip = true
       end
 
-      its(:status) { should eq :deleted }
+      its(:status) { is_expected.to eq :deleted }
       it "does not have a remote equivalent" do
         expect(resource).to be_remote
       end
@@ -149,9 +149,9 @@ describe Middleman::S3Sync::Resource do
         expect(resource).not_to be_local
       end
 
-      its(:path) { should eq 'path/to/resource.html' }
-      its(:local_path) { should eq 'build/path/to/resource.html' }
-      its(:remote_path) { should eq 'path/to/resource.html' }
+      its(:path) { is_expected.to eq 'path/to/resource.html' }
+      its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
     end
   end
 end
