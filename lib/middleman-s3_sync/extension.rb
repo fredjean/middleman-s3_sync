@@ -25,6 +25,7 @@ module Middleman
     option :dry_run, false, 'Whether to perform a dry-run'
     option :index_document, nil, 'S3 custom index document path'
     option :error_document, nil, 'S3 custom error document path'
+    option :content_types, {}, 'Custom content types'
 
     expose_to_config :s3_sync_options, :default_caching_policy, :caching_policy
 
