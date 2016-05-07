@@ -89,6 +89,10 @@ module Middleman
         ::Middleman::S3SyncExtension.s3_sync_options
       end
 
+      def content_types
+        ::Middleman::S3Sync.content_types
+      end
+
       def default_caching_policy(policy = {})
         ::Middleman::S3Sync.add_caching_policy(:default, policy)
       end
