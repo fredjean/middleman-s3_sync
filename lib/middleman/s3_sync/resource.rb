@@ -4,6 +4,7 @@ module Middleman
       attr_accessor :path, :resource, :partial_s3_resource, :full_s3_resource, :content_type, :gzipped, :options
 
       CONTENT_MD5_KEY = 'x-amz-meta-content-md5'
+      REDIRECT_KEY = 'x-amz-website-redirect-location'
 
       include Status
 
@@ -50,6 +51,10 @@ module Middleman
 
         if options.encryption
           attributes[:encryption] = 'AES256'
+        end
+
+        if redirect?
+          attributes[REDIRECT_KEY] = redirect_url
         end
 
         attributes
@@ -136,7 +141,7 @@ module Middleman
                     elsif local? && remote?
                       if options.force
                         :updated
-                      elsif not caching_policy_match?
+                      elsif not metadata_match?
                         :updated
                       elsif local_object_md5 == remote_object_md5
                         :identical
@@ -174,7 +179,27 @@ module Middleman
       end
 
       def redirect?
-        full_s3_resource && full_s3_resource.metadata.has_key?('x-amz-website-redirect-location')
+        (resource && resource.redirect?) || (full_s3_resource && full_s3_resource.metadata.has_key?(REDIRECT_KEY))
+      end
+
+      def metadata_match?
+        redirect_match? && caching_policy_match?
+      end
+
+      def redirect_match?
+        if redirect?
+          redirect_url == remote_redirect_url
+        else
+          true
+        end
+      end
+
+      def remote_redirect_url
+        full_s3_resource.metadata[REDIRECT_KEY]
+      end
+
+      def redirect_url
+        resource.target_url
       end
 
       def directory?
