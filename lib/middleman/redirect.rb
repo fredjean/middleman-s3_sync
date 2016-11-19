@@ -7,7 +7,7 @@ module Middleman
     end
 
     module Extensions
-      class RedirectResource
+      class RedirectResource < Resource
         def target_url
           @target_url ||= ::Middleman::Util.url_for(@store.app, @request_path, relative: false, find_resource: true)
         end
