@@ -291,7 +291,7 @@ The following keys can be set:
 You can pass the `expires` key to the `caching_policy` and
 `default_caching_policy` methods if you insist on setting the expires
 header on a results. You will need to pass it a Time object indicating
-when the resourse is set to expire.
+when the resource is set to expire.
 
 > Note that the `Cache-Control` header will take precedence over the
 > `Expires` header if both are present.
