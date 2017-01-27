@@ -17,6 +17,106 @@ describe Middleman::S3Sync::Resource do
     options.prefer_gzip = false
   end
 
+  context "a local and remote resource" do
+    let(:remote) {
+      double(
+        key: 'path/to/resource.html',
+        metadata: {}
+      )
+    }
+
+    context "without a prefix" do
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, remote) }
+
+      before do
+        allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(true)
+      end
+
+      it "does have a remote equivalent" do
+        expect(resource).to be_remote
+      end
+
+      it "exits locally" do
+        expect(resource).to be_local
+      end
+
+      its(:path) { should eq 'path/to/resource.html'}
+      its(:local_path) { should eq 'build/path/to/resource.html' }
+      its(:remote_path) { should eq 'path/to/resource.html' }
+
+      context "file excluded" do
+        before do
+          options.exclude = [/^path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
+    end
+
+    context "with a prefix set" do
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, remote) }
+      let(:remote) {
+        double(
+          key: 'bob/path/to/resource.html',
+          metadata: {}
+        )
+      }
+
+      before do
+        allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(true)
+        options.prefix = "bob" # not really needed
+      end
+
+      it "does have a remote equivalent" do
+        expect(resource).to be_remote
+      end
+
+      it "exists locally" do
+        expect(resource).to be_local
+      end
+
+      its(:path) { should eq 'path/to/resource.html' }
+      its(:local_path) { should eq 'build/path/to/resource.html' }
+      its(:remote_path) { should eq 'bob/path/to/resource.html' }
+
+      context "file excluded" do
+        before do
+          options.exclude = [/^bob\/path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
+    end
+
+    context "gzipped" do
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, remote) }
+      before do
+        allow(File).to receive(:exist?).with('build/path/to/resource.html.gz').and_return(true)
+        options.prefer_gzip = true
+      end
+
+      it "does have a remote equivalent" do
+        expect(resource).to be_remote
+      end
+
+      it "exists locally" do
+        expect(resource).to be_local
+      end
+
+      its(:path) { should eq 'path/to/resource.html' }
+      its(:local_path) { should eq 'build/path/to/resource.html.gz' }
+      its(:remote_path) { should eq 'path/to/resource.html' }
+
+      context "file excluded" do
+        before do
+          options.exclude = [/^path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
+    end
+  end
+
   context "a new resource" do
     subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, nil) }
 
@@ -38,6 +138,14 @@ describe Middleman::S3Sync::Resource do
       its(:path) { should eq 'path/to/resource.html'}
       its(:local_path) { should eq 'build/path/to/resource.html' }
       its(:remote_path) { should eq 'path/to/resource.html' }
+
+      context "file excluded" do
+        before do
+          options.exclude = [/^path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
     end
 
     context "with a prefix set" do
@@ -57,6 +165,14 @@ describe Middleman::S3Sync::Resource do
       its(:path) { should eq 'path/to/resource.html' }
       its(:local_path) { should eq 'build/path/to/resource.html' }
       its(:remote_path) { should eq 'bob/path/to/resource.html' }
+
+      context "file excluded" do
+        before do
+          options.exclude = [/^bob\/path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
     end
 
     context "gzipped" do
@@ -76,6 +192,14 @@ describe Middleman::S3Sync::Resource do
       its(:path) { should eq 'path/to/resource.html' }
       its(:local_path) { should eq 'build/path/to/resource.html.gz' }
       its(:remote_path) { should eq 'path/to/resource.html' }
+
+      context "file excluded" do
+        before do
+          options.exclude = [/^path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
     end
   end
 
@@ -110,9 +234,21 @@ describe Middleman::S3Sync::Resource do
       its(:path) { should eq 'path/to/resource.html'}
       its(:local_path) { should eq 'build/path/to/resource.html' }
       its(:remote_path) { should eq 'path/to/resource.html' }
+
+      context "file excluded" do
+        subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
+
+        before do
+          options.exclude = [/^path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
     end
 
     context "with a prefix set" do
+      subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
+
       before do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(false)
         allow(remote).to receive(:key).and_return('bob/path/to/resource.html')
@@ -131,6 +267,16 @@ describe Middleman::S3Sync::Resource do
       its(:path) { should eq 'path/to/resource.html' }
       its(:local_path) { should eq 'build/path/to/resource.html' }
       its(:remote_path) { should eq 'bob/path/to/resource.html' }
+
+      its(:status) { should eq :deleted }
+
+      context "file excluded" do
+        before do
+          options.exclude = [/^bob\/path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
     end
 
     context "gzipped" do
@@ -152,6 +298,14 @@ describe Middleman::S3Sync::Resource do
       its(:path) { should eq 'path/to/resource.html' }
       its(:local_path) { should eq 'build/path/to/resource.html' }
       its(:remote_path) { should eq 'path/to/resource.html' }
+
+      context "file excluded" do
+        before do
+          options.exclude = [/^path/]
+        end
+
+        its(:status) { should eq :excluded }
+      end
     end
   end
 end

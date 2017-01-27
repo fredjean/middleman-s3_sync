@@ -23,7 +23,8 @@ module Middleman
         :verbose,
         :content_types,
         :index_document,
-        :error_document
+        :error_document,
+        :exclude
       ]
       attr_accessor *OPTIONS
 

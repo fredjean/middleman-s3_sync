@@ -26,6 +26,7 @@ module Middleman
     option :index_document, nil, 'S3 custom index document path'
     option :error_document, nil, 'S3 custom error document path'
     option :content_types, {}, 'Custom content types'
+    option :exclude, [], "Regexps matching resources to exclude"
 
     def initialize(app, options_hash = {}, &block)
       super
