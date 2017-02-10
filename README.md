@@ -49,6 +49,7 @@ activate :s3_sync do |s3_sync|
   s3_sync.version_bucket             = false
   s3_sync.index_document             = 'index.html'
   s3_sync.error_document             = '404.html'
+  s3_sync.exclude                    = [/^foo\/bar/]
 end
 ```
 
@@ -71,6 +72,7 @@ The following defaults apply to the configuration items:
 | encryption                 | ```false```                        |
 | acl                        | ```'public-read'```                |
 | version_bucket             | ```false```                        |
+| exclude                    | ```[]```                           |
 
 You do not need to specify the settings that match the defaults. This
 simplify the configuration of the extension:
@@ -313,6 +315,24 @@ settings. The ```index_document``` option tells which file name gets used as
 the index document of a directory (typically, ```index.html```), while
 ```error_document``` specifies the document to display for 4xx errors (ie,
 the 404 page).
+
+You can enable a custom [index document](http://docs.aws.amazon.com/AmazonS3/latest/dev/IndexDocumentSupport.html)
+and [error document](http://docs.aws.amazon.com/AmazonS3/latest/dev/CustomErrorDocSupport.html)
+settings. The ```index_document``` option tells which file name gets used as
+the index document of a directory (typically, ```index.html```), while
+```error_document``` specifies the document to display for 4xx errors (ie,
+the 404 page).
+
+#### Excluding files from the sync
+
+You can set the `exclude` option to an array of regexps that would be used to match agains all the
+resources (local and remote) to decide which files should be synced and which not. The remote path will be used
+when doing the match. For example, had we the following `exclude = [/^docs\//, /file.txt/]` then:
+
+- Local files under `docs/` (or prefixed with `docs/`) won't be uploaded to S3. Also any file that
+had `file.txt` on their remote path won't be uploaded either.
+- Remote files under `docs/` or with `file.txt` on their path won't be considered while doing the sync. This means
+that we could have a `docs/` dir on S3 and not locally and `s3_sync` won't remove the files remotelly.
 
 ## A Debt of Gratitude
 
