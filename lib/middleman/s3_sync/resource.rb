@@ -119,7 +119,7 @@ module Middleman
       end
 
       def to_ignore?
-        status == :ignored || status == :alternate_encoding
+        status == :ignored || status == :excluded || status == :alternate_encoding
       end
 
       def local_content(&block)
@@ -134,7 +134,9 @@ module Middleman
                         :ignored
                       end
                     elsif local? && remote?
-                      if options.force
+                      if excluded_remotely?
+                        :excluded
+                      elsif options.force
                         :updated
                       elsif not caching_policy_match?
                         :updated
@@ -155,9 +157,15 @@ module Middleman
                         end
                       end
                     elsif local?
-                      :new
+                      if excluded_remotely?
+                        :excluded
+                      else
+                        :new
+                      end
                     elsif remote? && redirect?
                       :ignored
+                    elsif remote? && excluded_remotely?
+                      :excluded
                     elsif remote?
                       :deleted
                     else
@@ -167,6 +175,11 @@ module Middleman
 
       def local?
         File.exist?(local_path) && resource
+      end
+
+      def excluded_remotely?
+        excludes = (options.exclude) || []
+        excludes.find {|exclude| remote_path =~ exclude}
       end
 
       def remote?
