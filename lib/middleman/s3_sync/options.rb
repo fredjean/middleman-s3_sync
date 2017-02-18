@@ -6,6 +6,7 @@ module Middleman
         :http_prefix,
         :acl,
         :bucket,
+        :endpoint,
         :region,
         :aws_access_key_id,
         :aws_secret_access_key,

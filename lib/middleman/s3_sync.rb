@@ -94,6 +94,7 @@ module Middleman
 
       def connection
         connection_options = {
+          :endpoint => s3_sync_options.endpoint,
           :region => s3_sync_options.region,
           :path_style => s3_sync_options.path_style
         }
