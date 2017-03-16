@@ -9,6 +9,7 @@ module Middleman
     option :http_prefix, nil, 'Path prefix of the resources'
     option :acl, 'public-read', 'ACL for the resources being pushed to S3'
     option :bucket, nil, 'The name of the bucket we are pushing to.'
+    option :endpoint, nil, 'The name of the endpoint to use - useful when using S3 compatible storage'
     option :region, 'us-east-1', 'The name of the AWS region hosting the S3 bucket'
     option :aws_access_key_id, ENV['AWS_ACCESS_KEY_ID'] , 'The AWS access key id'
     option :aws_secret_access_key, ENV['AWS_SECRET_ACCESS_KEY'], 'The AWS secret access key'
