@@ -112,6 +112,7 @@ module Middleman
       end
 
       def remote_resource_for_path(path)
+        s3_sync_options.prefix = "" if s3_sync_options.prefix == "/" 
         bucket_files.find { |f| f.key == "#{s3_sync_options.prefix}#{path}" }
       end
 
