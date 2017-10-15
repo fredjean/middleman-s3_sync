@@ -132,7 +132,9 @@ module Middleman
       end
 
       def status
-        @status ||= if directory?
+        @status ||= if shunned?
+                      :ignored
+                    elsif directory?
                       if remote?
                         :deleted
                       else
@@ -192,6 +194,10 @@ module Middleman
         else
           true
         end
+      end
+
+      def shunned?
+        !!path[Regexp.union(options.ignore_paths)]
       end
 
       def remote_redirect_url

@@ -154,4 +154,46 @@ describe Middleman::S3Sync::Resource do
       its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
     end
   end
+
+  context 'An ignored resource' do
+    context "that is local" do
+
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, nil) }
+
+      let(:mm_resource) {
+        double(
+          destination_path: 'ignored/path/to/resource.html'
+        )
+      }
+
+      before do
+        allow(File).to receive(:exist?).with('build/ignored/path/to/resource.html').and_return(true)
+        options.ignore_paths = [/^ignored/]
+      end
+
+      its(:status) { is_expected.to eq :ignored }
+    end
+
+    context "that is remote" do
+
+      subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
+
+      let(:remote) {
+        double(
+          key: 'ignored/path/to/resource.html',
+          metadata: {}
+        )
+      }
+
+      before do
+        resource.full_s3_resource = remote
+        allow(remote).to receive(:key).and_return('ignored/path/to/resource.html')
+        options.ignore_paths = [/^ignored/]
+      end
+
+      its(:status) { is_expected.to eq :ignored }
+    end
+
+  end
+
 end
