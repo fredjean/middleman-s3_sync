@@ -106,6 +106,11 @@ module Middleman
             :aws_access_key_id => s3_sync_options.aws_access_key_id,
             :aws_secret_access_key => s3_sync_options.aws_secret_access_key
           })
+
+          # If using a assumed role
+          connection_options.merge!({
+            :aws_session_token => s3_sync_options.aws_session_token
+          }) if s3_sync_options.aws_session_token
         else
           connection_options.merge!({ :use_iam_profile => true })
         end
