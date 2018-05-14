@@ -13,6 +13,7 @@ module Middleman
     option :region, 'us-east-1', 'The name of the AWS region hosting the S3 bucket'
     option :aws_access_key_id, ENV['AWS_ACCESS_KEY_ID'] , 'The AWS access key id'
     option :aws_secret_access_key, ENV['AWS_SECRET_ACCESS_KEY'], 'The AWS secret access key'
+    option :aws_session_token, ENV['AWS_SESSION_TOKEN'] || ENV['AWS_SECURITY_TOKEN'], 'The AWS session token (for assuming roles)'
     option :after_build, false, 'Whether to synchronize right after the build'
     option :build_dir, nil, 'Where the built site is stored'
     option :delete, true, 'Whether to delete resources that do not have a local equivalent'
@@ -41,6 +42,7 @@ module Middleman
       read_config
       options.aws_access_key_id ||= ENV['AWS_ACCESS_KEY_ID']
       options.aws_secret_access_key ||= ENV['AWS_SECRET_ACCESS_KEY']
+      options.aws_session_token ||= ENV['AWS_SESSION_TOKEN'] || ENV['AWS_SECURITY_TOKEN']
       options.bucket ||= ENV['AWS_BUCKET']
       options.http_prefix = app.http_prefix if app.respond_to? :http_prefix
       options.build_dir ||= app.build_dir if app.respond_to? :build_dir
