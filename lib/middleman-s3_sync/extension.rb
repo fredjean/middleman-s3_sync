@@ -27,6 +27,7 @@ module Middleman
     option :index_document, nil, 'S3 custom index document path'
     option :error_document, nil, 'S3 custom error document path'
     option :content_types, {}, 'Custom content types'
+    option :ignore_paths, [], 'Paths that should be ignored during sync, strings or regex are allowed'
 
     expose_to_config :s3_sync_options, :default_caching_policy, :caching_policy
 
