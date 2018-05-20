@@ -138,11 +138,13 @@ contained in a bucket named "mysite.com":
   "Statement": [
     {
       "Effect": "Allow",
+      "Principal": "*",
       "Action": "s3:*",
       "Resource": "arn:aws:s3:::mysite.com"
     },
     {
       "Effect": "Allow",
+      "Principal": "*",
       "Action": "s3:*",
       "Resource": "arn:aws:s3:::mysite.com/*"
     }
