@@ -63,7 +63,7 @@ module Middleman
 
       def update!
         local_content { |body|
-          say_status "#{ANSI.blue{"Updating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
+          say_status "#{ANSI.blue{"Updating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''} #{ ANSI.dark {' as Content-Type: '} }#{ ANSI.dark { attributes[:content_type] } }"
           s3_resource.merge_attributes(to_h)
           s3_resource.body = body
 
@@ -86,7 +86,7 @@ module Middleman
       end
 
       def create!
-        say_status "#{ANSI.green{"Creating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
+        say_status "#{ANSI.green{"Creating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''} #{ ANSI.dark {'as Content-Type: '} }#{ ANSI.dark { attributes[:content_type] } }"
         local_content { |body|
           bucket.files.create(to_h.merge(body: body)) unless options.dry_run
         }
@@ -240,8 +240,15 @@ module Middleman
         gzipped ? local_path.gsub(/\.gz$/, '') : local_path
       end
 
+      def matching_content_type(fileKey)
+        result = options.content_types.to_a.reverse.find do |ct|
+          fileKey.to_s.include? ct.first
+        end
+        result[1] if result
+      end
+
       def content_type
-        @content_type ||= Middleman::S3Sync.content_types[local_path]
+        @content_type ||= matching_content_type(resource.path)
         @content_type ||= !resource.nil? ? resource.content_type : nil
       end
 
