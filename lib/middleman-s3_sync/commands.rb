@@ -70,8 +70,9 @@ module Middleman
         verbose = options[:verbose] ? 0 : 1
         instrument = options[:instrument]
 
+        mode = options[:build] ? :build : :config
+
         ::Middleman::S3Sync.app = ::Middleman::Application.new do
-          mode = options[:build] ? :build : :config
           config[:mode] = mode
           config[:environment] = env
           ::Middleman::Logger.singleton(verbose, instrument)
