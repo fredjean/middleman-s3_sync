@@ -37,4 +37,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'timerizer'
   gem.add_development_dependency 'travis'
   gem.add_development_dependency 'travis-lint'
+  gem.add_development_dependency 'webrick'
 end
