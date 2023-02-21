@@ -77,7 +77,7 @@ module Middleman
         config_file_path = File.join(root_path, ".s3_sync")
 
         # skip if config file does not exist
-        return unless File.exists?(config_file_path)
+        return unless File.exist?(config_file_path)
 
         io = File.open(config_file_path, "r")
       end
