@@ -115,7 +115,7 @@ module Middleman
           connection_options.merge!({ :use_iam_profile => true })
         end
 
-        @connection ||= Fog::Storage::AWS.new(connection_options)
+        @connection ||= Fog::AWS::Storage.new(connection_options)
       end
 
       def remote_resource_for_path(path)
