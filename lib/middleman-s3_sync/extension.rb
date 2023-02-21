@@ -58,8 +58,15 @@ module Middleman
       ::Middleman::S3Sync.sync() if options.after_build
     end
 
-    def manipulate_resource_list(mm_resources)
-      ::Middleman::S3Sync.mm_resources = mm_resources
+    def manipulate_resource_list(resources)
+      ::Middleman::S3Sync.mm_resources = resources.each_with_object([]) do |resource, list|
+        next if resource.ignored?
+
+        list << resource
+        list << resource.target_resource if resource.respond_to?(:target_resource)
+      end
+
+      resources
     end
 
     def s3_sync_options
