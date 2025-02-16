@@ -1,5 +1,4 @@
-require 'fog/aws'
-require 'fog/aws/storage'
+require 'aws-sdk-s3'
 require 'digest/md5'
 require 'middleman/s3_sync/version'
 require 'middleman/s3_sync/options'
@@ -51,8 +50,8 @@ module Middleman
       def bucket
         @@bucket_lock.synchronize do
           @bucket ||= begin
-                        bucket = connection.directories.get(s3_sync_options.bucket, :prefix => s3_sync_options.prefix)
-                        raise "Bucket #{s3_sync_options.bucket} doesn't exist!" unless bucket
+                        bucket = s3_client.bucket(s3_sync_options.bucket)
+                        raise "Bucket #{s3_sync_options.bucket} doesn't exist!" unless bucket.exists?
                         bucket
                       end
         end
@@ -76,7 +75,12 @@ module Middleman
 
       protected
       def update_bucket_versioning
-        connection.put_bucket_versioning(s3_sync_options.bucket, "Enabled") if s3_sync_options.version_bucket
+        s3_client.put_bucket_versioning({
+          bucket: s3_sync_options.bucket,
+          versioning_configuration: {
+            status: "Enabled"
+          }
+        }) if s3_sync_options.version_bucket
       end
 
       def update_bucket_website
@@ -90,32 +94,33 @@ module Middleman
 
         unless opts.empty?
           say_status "Putting bucket website: #{opts.to_json}"
-          connection.put_bucket_website(s3_sync_options.bucket, opts)
+          s3_client.put_bucket_website({
+            bucket: s3_sync_options.bucket,
+            website_configuration: opts
+          })
         end
       end
 
-      def connection
+      def s3_client
         connection_options = {
-          :endpoint => s3_sync_options.endpoint,
-          :region => s3_sync_options.region,
-          :path_style => s3_sync_options.path_style
+          endpoint: s3_sync_options.endpoint,
+          region: s3_sync_options.region,
+          force_path_style: s3_sync_options.path_style
         }
 
         if s3_sync_options.aws_access_key_id && s3_sync_options.aws_secret_access_key
           connection_options.merge!({
-            :aws_access_key_id => s3_sync_options.aws_access_key_id,
-            :aws_secret_access_key => s3_sync_options.aws_secret_access_key
+            access_key_id: s3_sync_options.aws_access_key_id,
+            secret_access_key: s3_sync_options.aws_secret_access_key
           })
 
-          # If using a assumed role
+          # If using an assumed role
           connection_options.merge!({
-            :aws_session_token => s3_sync_options.aws_session_token
+            session_token: s3_sync_options.aws_session_token
           }) if s3_sync_options.aws_session_token
-        else
-          connection_options.merge!({ :use_iam_profile => true })
         end
 
-        @connection ||= Fog::AWS::Storage.new(connection_options)
+        @s3_client ||= Aws::S3::Client.new(connection_options)
       end
 
       def remote_resource_for_path(path)
@@ -143,7 +148,7 @@ module Middleman
       def bucket_files
         @@bucket_files_lock.synchronize do
           @bucket_files ||= [].tap { |files|
-            bucket.files.each { |f|
+            bucket.objects.each { |f|
               files << f
             }
           }

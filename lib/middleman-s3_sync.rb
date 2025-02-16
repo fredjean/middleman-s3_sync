@@ -1,3 +1,4 @@
+require 'logger'
 require 'middleman-core'
 require 'middleman-s3_sync/commands'
 require 'middleman/s3_sync'

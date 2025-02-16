@@ -8,6 +8,7 @@
 require 'middleman-s3_sync'
 require 'timerizer'
 require 'rspec/its'
+require 'rspec/support'
 
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
@@ -20,6 +21,10 @@ RSpec.configure do |config|
   config.order = 'random'
 
   config.before :all do
-    Fog.mock!
+    Aws.config.update(
+      region: 'us-east-1',
+      credentials: Aws::Credentials.new('access_key_id', 'secret_access_key'),
+      stub_responses: true
+    )
   end
 end
