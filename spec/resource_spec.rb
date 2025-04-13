@@ -44,6 +44,7 @@ describe Middleman::S3Sync::Resource do
     context "with a prefix set" do
       before do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/resource.html').and_return('test content')
         options.prefix = "bob"
       end
 
