@@ -21,7 +21,7 @@ module Middleman
       # S3 resource as returned by a HEAD request
       def full_s3_resource
         @full_s3_resource ||= begin
-          bucket.(remote_path).head
+          bucket.object(remote_path).head
         rescue Aws::S3::Errors::NotFound
           nil
         end
@@ -66,13 +66,10 @@ module Middleman
       alias :attributes :to_h
 
       def update!
-        local_content { |body|
-          say_status "#{ANSI.blue{"Updating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
-          s3_resource.merge_attributes(to_h)
-          s3_resource.body = body
-
-          s3_resource.save unless options.dry_run
-        }
+        say_status "#{ANSI.blue{"Updating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
+        unless options.dry_run
+          upload!
+        end
       end
 
       def local_path
@@ -91,9 +88,9 @@ module Middleman
 
       def create!
         say_status "#{ANSI.green{"Creating"}} #{remote_path}#{ gzipped ? ANSI.white {' (gzipped)'} : ''}"
-        local_content { |body|
-          bucket.files.create(to_h.merge(body: body)) unless options.dry_run
-        }
+        unless options.dry_run
+          upload!
+        end
       end
 
       def upload!
@@ -101,23 +98,35 @@ module Middleman
         options = {
           body: local_content,
           content_type: content_type,
-          acl: acl
+          acl: options.acl
         }
 
         # Add metadata if present
-        options[:metadata] = metadata if metadata && !metadata.empty?
+        if local_content_md5
+          options[:metadata] = { CONTENT_MD5_KEY => local_content_md5 }
+        end
 
         # Add redirect if present
-        options[:website_redirect_location] = redirect_url if redirect_url
+        options[:website_redirect_location] = redirect_url if redirect?
 
         # Add content encoding if present
-        options[:content_encoding] = content_encoding if content_encoding
+        options[:content_encoding] = "gzip" if options.prefer_gzip && gzipped
 
-        # Add cache control if present
-        options[:cache_control] = cache_control if cache_control
+        # Add cache control and expires if present
+        if caching_policy
+          options[:cache_control] = caching_policy.cache_control
+          options[:expires] = caching_policy.expires
+        end
 
-        # Add expires if present
-        options[:expires] = expires if expires
+        # Add storage class if needed
+        if options.reduced_redundancy_storage
+          options[:storage_class] = 'REDUCED_REDUNDANCY'
+        end
+
+        # Add encryption if needed
+        if options.encryption
+          options[:server_side_encryption] = 'AES256'
+        end
 
         object.put(options)
       end
@@ -247,7 +256,7 @@ module Middleman
       end
 
       def remote_object_md5
-        s3_resource.etag
+        s3_resource.etag.gsub(/"/, '') if s3_resource.etag
       end
 
       def encoding_match?
@@ -255,7 +264,7 @@ module Middleman
       end
 
       def remote_content_md5
-        full_s3_resource.etag.gsub(/"/, '')
+        full_s3_resource.metadata[CONTENT_MD5_KEY] if full_s3_resource && full_s3_resource.metadata
       end
 
       def local_object_md5
