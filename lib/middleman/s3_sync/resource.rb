@@ -175,8 +175,8 @@ module Middleman
         status == :ignored || status == :alternate_encoding
       end
 
-      def local_content(&block)
-        File.open(local_path, &block)
+      def local_content
+        File.read(local_path)
       end
 
       def status

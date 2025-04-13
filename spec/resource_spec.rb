@@ -32,11 +32,11 @@ describe Middleman::S3Sync::Resource do
         expect(resource).not_to be_remote
       end
 
-      it "exits locally" do
+      it "exists locally" do
         expect(resource).to be_local
       end
 
-      its(:path) { is_expected.to eq 'path/to/resource.html'}
+      its(:path) { is_expected.to eq 'path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
       its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
     end
@@ -103,7 +103,7 @@ describe Middleman::S3Sync::Resource do
         expect(resource).to be_remote
       end
 
-      it "exits locally" do
+      it "does not exist locally" do
         expect(resource).not_to be_local
       end
 
@@ -146,7 +146,7 @@ describe Middleman::S3Sync::Resource do
         expect(resource).to be_remote
       end
 
-      it "exists locally" do
+      it "does not exist locally" do
         expect(resource).not_to be_local
       end
 
