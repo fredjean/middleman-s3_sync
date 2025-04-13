@@ -20,7 +20,11 @@ module Middleman
 
       # S3 resource as returned by a HEAD request
       def full_s3_resource
-        @full_s3_resource ||= bucket.files.head(remote_path)
+        @full_s3_resource ||= begin
+          bucket.(remote_path).head
+        rescue Aws::S3::Errors::NotFound
+          nil
+        end
       end
 
       def remote_path
@@ -82,7 +86,7 @@ module Middleman
 
       def destroy!
         say_status "#{ANSI.red{"Deleting"}} #{remote_path}"
-        bucket.files.destroy remote_path unless options.dry_run
+        bucket.object(remote_path).delete unless options.dry_run
       end
 
       def create!
@@ -90,6 +94,32 @@ module Middleman
         local_content { |body|
           bucket.files.create(to_h.merge(body: body)) unless options.dry_run
         }
+      end
+
+      def upload!
+        object = bucket.object(remote_path)
+        options = {
+          body: local_content,
+          content_type: content_type,
+          acl: acl
+        }
+
+        # Add metadata if present
+        options[:metadata] = metadata if metadata && !metadata.empty?
+
+        # Add redirect if present
+        options[:website_redirect_location] = redirect_url if redirect_url
+
+        # Add content encoding if present
+        options[:content_encoding] = content_encoding if content_encoding
+
+        # Add cache control if present
+        options[:cache_control] = cache_control if cache_control
+
+        # Add expires if present
+        options[:expires] = expires if expires
+
+        object.put(options)
       end
 
       def ignore!
@@ -177,11 +207,11 @@ module Middleman
       end
 
       def remote?
-        !!s3_resource
+        !full_s3_resource.nil?
       end
 
       def redirect?
-        (resource && resource.redirect?) || (full_s3_resource && full_s3_resource.metadata.has_key?(REDIRECT_KEY))
+        (resource && resource.redirect?) || (full_s3_resource && full_s3_resource.website_redirect_location)
       end
 
       def metadata_match?
@@ -201,7 +231,7 @@ module Middleman
       end
 
       def remote_redirect_url
-        full_s3_resource.metadata[REDIRECT_KEY]
+        full_s3_resource&.website_redirect_location
       end
 
       def redirect_url
@@ -225,7 +255,7 @@ module Middleman
       end
 
       def remote_content_md5
-        full_s3_resource.metadata[CONTENT_MD5_KEY]
+        full_s3_resource.etag.gsub(/"/, '')
       end
 
       def local_object_md5
