@@ -46,7 +46,7 @@ describe Middleman::S3Sync::Resource do
       before do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(true)
         allow(File).to receive(:read).with('build/path/to/resource.html').and_return('test content')
-        options.prefix = "bob"
+        options.prefix = "bob/"
       end
 
       it "does not have a remote equivalent" do
@@ -118,7 +118,7 @@ describe Middleman::S3Sync::Resource do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(false)
         remote = mock_s3_object('bob/path/to/resource.html')
         resource.full_s3_resource = remote
-        options.prefix = "bob"
+        options.prefix = "bob/"
       end
 
       its(:status) { is_expected.to eq :deleted }

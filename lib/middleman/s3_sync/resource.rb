@@ -33,10 +33,10 @@ module Middleman
             s3_resource.key
           else
             # For HeadObjectOutput objects which don't have key method
-            path
+            options.prefix ? "#{options.prefix}#{path}" : path
           end
         else
-          "#{options.prefix}#{path}"
+          options.prefix ? "#{options.prefix}#{path}" : path
         end
       end
       alias :key :remote_path
