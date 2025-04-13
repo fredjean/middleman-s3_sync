@@ -50,7 +50,7 @@ module Middleman
       def bucket
         @@bucket_lock.synchronize do
           @bucket ||= begin
-                        bucket = s3_client.bucket(s3_sync_options.bucket)
+                        bucket = s3_resource.bucket(s3_sync_options.bucket)
                         raise "Bucket #{s3_sync_options.bucket} doesn't exist!" unless bucket.exists?
                         bucket
                       end
@@ -102,29 +102,39 @@ module Middleman
       end
 
       def s3_client
-        connection_options = {
-          endpoint: s3_sync_options.endpoint,
-          region: s3_sync_options.region,
-          force_path_style: s3_sync_options.path_style
-        }
-
-        if s3_sync_options.aws_access_key_id && s3_sync_options.aws_secret_access_key
-          connection_options.merge!({
-            access_key_id: s3_sync_options.aws_access_key_id,
-            secret_access_key: s3_sync_options.aws_secret_access_key
-          })
-
-          # If using an assumed role
-          connection_options.merge!({
-            session_token: s3_sync_options.aws_session_token
-          }) if s3_sync_options.aws_session_token
-        end
-
         @s3_client ||= Aws::S3::Client.new(connection_options)
       end
 
+      def s3_resource
+        @s3_resource ||= Aws::S3::Resource.new(client: s3_client)
+      end
+
+      def connection_options
+        @connection_options ||= begin
+          connection_options = {
+            endpoint: s3_sync_options.endpoint,
+            region: s3_sync_options.region,
+            force_path_style: s3_sync_options.path_style
+          }
+
+          if s3_sync_options.aws_access_key_id && s3_sync_options.aws_secret_access_key
+            connection_options.merge!({
+              access_key_id: s3_sync_options.aws_access_key_id,
+              secret_access_key: s3_sync_options.aws_secret_access_key
+            })
+
+            # If using an assumed role
+            connection_options.merge!({
+              session_token: s3_sync_options.aws_session_token
+            }) if s3_sync_options.aws_session_token
+          end
+
+          connection_options
+        end
+      end
+
       def remote_resource_for_path(path)
-        bucket_files.find { |f| f.key == "#{s3_sync_options.prefix}#{path}" }
+        bucket_files[path]
       end
 
       def s3_sync_resources
@@ -147,11 +157,13 @@ module Middleman
 
       def bucket_files
         @@bucket_files_lock.synchronize do
-          @bucket_files ||= [].tap { |files|
-            bucket.objects.each { |f|
-              files << f
-            }
-          }
+          @bucket_files ||= begin
+            files = {}
+            bucket.objects.each do |object|
+              files[object.key] = object
+            end
+            files
+          end
         end
       end
 
