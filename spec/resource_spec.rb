@@ -23,6 +23,7 @@ describe Middleman::S3Sync::Resource do
     context "without a prefix" do
       before do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/resource.html').and_return('test content')
       end
 
       its(:status) { is_expected.to eq :new }
@@ -62,6 +63,9 @@ describe Middleman::S3Sync::Resource do
     context "gzipped" do
       before do
         allow(File).to receive(:exist?).with('build/path/to/resource.html.gz').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/resource.html.gz').and_return('gzipped content')
+        allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/resource.html').and_return('test content')
         options.prefer_gzip = true
       end
 
@@ -82,12 +86,7 @@ describe Middleman::S3Sync::Resource do
   context "the file does not exist locally" do
     subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
 
-    let(:remote) {
-      double(
-        key: 'path/to/resource.html',
-        metadata: {}
-      )
-    }
+    let(:remote) { mock_s3_object('path/to/resource.html') }
 
     before do
       resource.full_s3_resource = remote
@@ -115,7 +114,8 @@ describe Middleman::S3Sync::Resource do
     context "with a prefix set" do
       before do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(false)
-        allow(remote).to receive(:key).and_return('bob/path/to/resource.html')
+        remote = mock_s3_object('bob/path/to/resource.html')
+        resource.full_s3_resource = remote
         options.prefix = "bob"
       end
 
@@ -168,6 +168,7 @@ describe Middleman::S3Sync::Resource do
 
       before do
         allow(File).to receive(:exist?).with('build/ignored/path/to/resource.html').and_return(true)
+        allow(File).to receive(:read).with('build/ignored/path/to/resource.html').and_return('test content')
         options.ignore_paths = [/^ignored/]
       end
 
@@ -178,16 +179,10 @@ describe Middleman::S3Sync::Resource do
 
       subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
 
-      let(:remote) {
-        double(
-          key: 'ignored/path/to/resource.html',
-          metadata: {}
-        )
-      }
+      let(:remote) { mock_s3_object('ignored/path/to/resource.html') }
 
       before do
         resource.full_s3_resource = remote
-        allow(remote).to receive(:key).and_return('ignored/path/to/resource.html')
         options.ignore_paths = [/^ignored/]
       end
 

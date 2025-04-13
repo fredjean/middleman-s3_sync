@@ -27,4 +27,31 @@ RSpec.configure do |config|
       stub_responses: true
     )
   end
+  
+  # Helper method to create a mock S3 object
+  def mock_s3_object(key, metadata = {})
+    obj = double(
+      key: key,
+      metadata: metadata,
+      etag: "\"#{Digest::MD5.hexdigest('test content')}\"",
+      content_encoding: nil,
+      cache_control: nil,
+      website_redirect_location: nil
+    )
+    
+    # Allow head method to return self for testing
+    allow(obj).to receive(:head).and_return(obj)
+    obj
+  end
+  
+  # Helper method to create a mock HeadObjectOutput
+  def mock_head_object(metadata = {})
+    double(
+      metadata: metadata,
+      etag: "\"#{Digest::MD5.hexdigest('test content')}\"",
+      content_encoding: nil,
+      cache_control: nil,
+      website_redirect_location: nil
+    )
+  end
 end
