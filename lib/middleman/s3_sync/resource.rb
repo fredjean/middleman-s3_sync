@@ -95,7 +95,7 @@ module Middleman
 
       def upload!
         object = bucket.object(remote_path)
-        options = {
+        upload_options = {
           body: local_content,
           content_type: content_type,
           acl: options.acl
@@ -103,32 +103,32 @@ module Middleman
 
         # Add metadata if present
         if local_content_md5
-          options[:metadata] = { CONTENT_MD5_KEY => local_content_md5 }
+          upload_options[:metadata] = { CONTENT_MD5_KEY => local_content_md5 }
         end
 
         # Add redirect if present
-        options[:website_redirect_location] = redirect_url if redirect?
+        upload_options[:website_redirect_location] = redirect_url if redirect?
 
         # Add content encoding if present
-        options[:content_encoding] = "gzip" if options.prefer_gzip && gzipped
+        upload_options[:content_encoding] = "gzip" if options.prefer_gzip && gzipped
 
         # Add cache control and expires if present
         if caching_policy
-          options[:cache_control] = caching_policy.cache_control
-          options[:expires] = caching_policy.expires
+          upload_options[:cache_control] = caching_policy.cache_control
+          upload_options[:expires] = caching_policy.expires
         end
 
         # Add storage class if needed
         if options.reduced_redundancy_storage
-          options[:storage_class] = 'REDUCED_REDUNDANCY'
+          upload_options[:storage_class] = 'REDUCED_REDUNDANCY'
         end
 
         # Add encryption if needed
         if options.encryption
-          options[:server_side_encryption] = 'AES256'
+          upload_options[:server_side_encryption] = 'AES256'
         end
 
-        object.put(options)
+        object.put(upload_options)
       end
 
       def ignore!
