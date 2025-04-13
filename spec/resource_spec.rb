@@ -8,7 +8,8 @@ describe Middleman::S3Sync::Resource do
 
   let(:mm_resource) {
     double(
-      destination_path: 'path/to/resource.html'
+      destination_path: 'path/to/resource.html',
+      content_type: 'text/html'
     )
   }
   before do
@@ -163,7 +164,8 @@ describe Middleman::S3Sync::Resource do
 
       let(:mm_resource) {
         double(
-          destination_path: 'ignored/path/to/resource.html'
+          destination_path: 'ignored/path/to/resource.html',
+          content_type: 'text/html'
         )
       }
 

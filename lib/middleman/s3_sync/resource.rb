@@ -233,7 +233,8 @@ module Middleman
       end
 
       def redirect?
-        (resource && resource.redirect?) || (full_s3_resource && full_s3_resource.website_redirect_location)
+        (resource && resource.respond_to?(:redirect?) && resource.redirect?) || 
+          (full_s3_resource && full_s3_resource.respond_to?(:website_redirect_location) && full_s3_resource.website_redirect_location)
       end
 
       def metadata_match?
@@ -257,7 +258,7 @@ module Middleman
       end
 
       def redirect_url
-        resource.target_url
+        resource.respond_to?(:target_url) ? resource.target_url : nil
       end
 
       def directory?
@@ -287,7 +288,13 @@ module Middleman
       end
 
       def local_content_md5
-        @local_content_md5 ||= File.exist?(original_path) ? Digest::MD5.hexdigest(File.read(original_path)) : nil
+        @local_content_md5 ||= begin
+          if File.exist?(original_path)
+            Digest::MD5.hexdigest(File.read(original_path))
+          else
+            nil
+          end
+        end
       end
 
       def original_path
@@ -296,7 +303,7 @@ module Middleman
 
       def content_type
         @content_type ||= Middleman::S3Sync.content_types[local_path]
-        @content_type ||= !resource.nil? ? resource.content_type : nil
+        @content_type ||= !resource.nil? && resource.respond_to?(:content_type) ? resource.content_type : nil
       end
 
       def caching_policy
@@ -304,7 +311,7 @@ module Middleman
       end
 
       def caching_policy_match?
-        if (caching_policy)
+        if caching_policy && full_s3_resource && full_s3_resource.respond_to?(:cache_control)
           caching_policy.cache_control == full_s3_resource.cache_control
         else
           true
