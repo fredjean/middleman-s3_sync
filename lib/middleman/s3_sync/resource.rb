@@ -28,7 +28,16 @@ module Middleman
       end
 
       def remote_path
-        s3_resource ? s3_resource.key : "#{options.prefix}#{path}"
+        if s3_resource
+          if s3_resource.respond_to?(:key)
+            s3_resource.key
+          else
+            # For HeadObjectOutput objects which don't have key method
+            path
+          end
+        else
+          "#{options.prefix}#{path}"
+        end
       end
       alias :key :remote_path
 
