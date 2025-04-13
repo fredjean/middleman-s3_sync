@@ -176,7 +176,11 @@ module Middleman
       end
 
       def local_content
-        File.read(local_path)
+        if block_given?
+          File.open(local_path) { |f| yield f.read }
+        else
+          File.read(local_path)
+        end
       end
 
       def status
@@ -273,7 +277,9 @@ module Middleman
       end
 
       def remote_content_md5
-        full_s3_resource.metadata[CONTENT_MD5_KEY] if full_s3_resource && full_s3_resource.metadata
+        if full_s3_resource && full_s3_resource.metadata
+          full_s3_resource.metadata[CONTENT_MD5_KEY]
+        end
       end
 
       def local_object_md5
@@ -281,7 +287,7 @@ module Middleman
       end
 
       def local_content_md5
-        @local_content_md5 ||= Digest::MD5.hexdigest(File.read(original_path))
+        @local_content_md5 ||= File.exist?(original_path) ? Digest::MD5.hexdigest(File.read(original_path)) : nil
       end
 
       def original_path

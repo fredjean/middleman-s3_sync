@@ -9,6 +9,8 @@ require 'middleman-s3_sync'
 require 'timerizer'
 require 'rspec/its'
 require 'rspec/support'
+require 'digest/md5'
+require 'cgi'
 
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
