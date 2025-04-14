@@ -31,7 +31,7 @@ describe Middleman::S3Sync::Resource do
     allow(s3_resource).to receive(:bucket).and_return(bucket)
     allow(bucket).to receive(:exists?).and_return(true)
     allow(bucket).to receive(:object) do |path|
-      # Remove any leading slash to match test expectations
+      # Ensure path has no leading slash
       path = path.sub(/^\//, '') if path.is_a?(String)
       s3_object
     end

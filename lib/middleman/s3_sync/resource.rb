@@ -10,8 +10,13 @@ module Middleman
 
       def initialize(resource, partial_s3_resource)
         @resource = resource
-        @path = resource ? resource.destination_path : (partial_s3_resource&.key || '')
-        @path = @path.sub(/^\//, '') # Remove leading slash if present
+        @path = if resource
+                  resource.destination_path.sub(/^\//, '')
+                elsif partial_s3_resource&.key
+                  partial_s3_resource.key.sub(/^\//, '')
+                else
+                  ''
+                end
         @partial_s3_resource = partial_s3_resource
       end
 
@@ -31,7 +36,7 @@ module Middleman
       def remote_path
         if s3_resource
           if s3_resource.respond_to?(:key)
-            s3_resource.key
+            s3_resource.key.sub(/^\//, '')
           else
             # For HeadObjectOutput objects which don't have key method
             options.prefix ? normalize_path(options.prefix, path) : path

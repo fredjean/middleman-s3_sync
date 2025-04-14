@@ -32,7 +32,7 @@ RSpec.configure do |config|
   
   # Helper method to create a mock S3 object
   def mock_s3_object(key, metadata = {})
-    # Remove any leading slash to match test expectations
+    # Ensure key has no leading slash to match test expectations
     key = key.sub(/^\//, '')
     
     obj = double(
@@ -48,9 +48,6 @@ RSpec.configure do |config|
     allow(obj).to receive(:head).and_return(obj)
     allow(obj).to receive(:put).and_return(true)
     allow(obj).to receive(:delete).and_return(true)
-    
-    # Print debug info
-    puts "Created mock S3 object with key: #{key}"
     
     obj
   end
