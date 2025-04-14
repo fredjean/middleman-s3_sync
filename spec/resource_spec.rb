@@ -34,7 +34,7 @@ describe Middleman::S3Sync::Resource do
     allow(s3_object).to receive(:head).and_return(nil)
     allow(s3_object).to receive(:put).and_return(true)
     allow(s3_object).to receive(:delete).and_return(true)
-    
+
     # Allow Middleman::S3Sync to use our mocked bucket
     allow(Middleman::S3Sync).to receive(:bucket).and_return(bucket)
   end
@@ -67,7 +67,7 @@ describe Middleman::S3Sync::Resource do
       before do
         allow(File).to receive(:exist?).with('build/path/to/resource.html').and_return(true)
         allow(File).to receive(:read).with('build/path/to/resource.html').and_return('test content')
-        options.prefix = "bob/"
+        options.prefix = "bob"
       end
 
       it "does not have a remote equivalent" do
@@ -174,7 +174,7 @@ describe Middleman::S3Sync::Resource do
 
       its(:path) { is_expected.to eq 'path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
-      its(:remote_path) { is_expected.to eq '/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
     end
   end
 
