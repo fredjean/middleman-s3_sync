@@ -60,7 +60,7 @@ describe Middleman::S3Sync::Resource do
 
       its(:path) { is_expected.to eq 'path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
-      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq '/path/to/resource.html' }
     end
 
     context "with a prefix set" do
@@ -80,7 +80,7 @@ describe Middleman::S3Sync::Resource do
 
       its(:path) { is_expected.to eq 'path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
-      its(:remote_path) { is_expected.to eq 'bob/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq '/bob/path/to/resource.html' }
     end
 
     context "gzipped" do
@@ -102,7 +102,7 @@ describe Middleman::S3Sync::Resource do
 
       its(:path) { is_expected.to eq 'path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html.gz' }
-      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq '/path/to/resource.html' }
     end
   end
 
@@ -131,7 +131,7 @@ describe Middleman::S3Sync::Resource do
 
       its(:path) { is_expected.to eq 'path/to/resource.html'}
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
-      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq '/path/to/resource.html' }
     end
 
     context "with a prefix set" do
@@ -153,7 +153,7 @@ describe Middleman::S3Sync::Resource do
 
       its(:path) { is_expected.to eq 'path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
-      its(:remote_path) { is_expected.to eq 'bob/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq '/bob/path/to/resource.html' }
     end
 
     context "gzipped" do
@@ -174,7 +174,7 @@ describe Middleman::S3Sync::Resource do
 
       its(:path) { is_expected.to eq 'path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
-      its(:remote_path) { is_expected.to eq 'path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq '/path/to/resource.html' }
     end
   end
 

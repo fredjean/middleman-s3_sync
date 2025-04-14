@@ -34,10 +34,10 @@ module Middleman
             s3_resource.key
           else
             # For HeadObjectOutput objects which don't have key method
-            options.prefix ? normalize_path(options.prefix, path) : path
+            options.prefix ? normalize_path(options.prefix, path) : "/#{path}"
           end
         else
-          options.prefix ? normalize_path(options.prefix, path) : path
+          options.prefix ? normalize_path(options.prefix, path) : "/#{path}"
         end
       end
       alias :key :remote_path
@@ -46,7 +46,7 @@ module Middleman
         # Remove any trailing slash from prefix and leading slash from path
         prefix = prefix.chomp('/')
         path = path.sub(/^\//, '')
-        "#{prefix}/#{path}"
+        "/#{prefix}/#{path}"
       end
 
       def to_h
