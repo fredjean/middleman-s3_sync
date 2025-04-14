@@ -27,7 +27,7 @@ module Middleman
       # S3 resource as returned by a HEAD request
       def full_s3_resource
         @full_s3_resource ||= begin
-          bucket.object(remote_path).head
+          bucket.object(remote_path.sub(/^\//, '')).head
         rescue Aws::S3::Errors::NotFound
           nil
         end
@@ -105,7 +105,7 @@ module Middleman
 
       def destroy!
         say_status "#{ANSI.red{"Deleting"}} #{remote_path}"
-        bucket.object(remote_path).delete unless options.dry_run
+        bucket.object(remote_path.sub(/^\//, '')).delete unless options.dry_run
       end
 
       def create!
@@ -116,7 +116,7 @@ module Middleman
       end
 
       def upload!
-        object = bucket.object(remote_path)
+        object = bucket.object(remote_path.sub(/^\//, ''))
         upload_options = {
           body: local_content,
           content_type: content_type,
