@@ -43,7 +43,7 @@ module Middleman
           end
         else
           options.prefix ? normalize_path(options.prefix, path) : path.sub(/^\//, '')
-        end
+        end.sub(/^\//, '')  # Ensure no leading slash
       end
       alias :key :remote_path
       
