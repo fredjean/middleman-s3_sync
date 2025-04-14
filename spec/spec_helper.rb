@@ -46,11 +46,6 @@ RSpec.configure do |config|
     allow(obj).to receive(:put).and_return(true)
     allow(obj).to receive(:delete).and_return(true)
     
-    # Allow bucket to return this object when requested
-    if defined?(bucket) && bucket.respond_to?(:object)
-      allow(bucket).to receive(:object).with(key).and_return(obj)
-    end
-    
     obj
   end
   
