@@ -10,7 +10,8 @@ module Middleman
 
       def initialize(resource, partial_s3_resource)
         @resource = resource
-        @path = resource ? resource.destination_path : partial_s3_resource.key
+        @path = resource ? resource.destination_path : (partial_s3_resource&.key || '')
+        @path = @path.sub(/^\//, '') # Remove leading slash if present
         @partial_s3_resource = partial_s3_resource
       end
 

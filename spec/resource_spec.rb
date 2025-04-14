@@ -78,9 +78,9 @@ describe Middleman::S3Sync::Resource do
         expect(resource).to be_local
       end
 
-      its(:path) { is_expected.to eq '/path/to/resource.html' }
+      its(:path) { is_expected.to eq 'path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
-      its(:remote_path) { is_expected.to eq '/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq 'bob/path/to/resource.html' }
     end
 
     context "gzipped" do
