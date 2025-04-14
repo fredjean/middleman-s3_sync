@@ -13,17 +13,30 @@ describe Middleman::S3Sync::Resource do
     )
   }
 
-  let (:s3_client) { instance_double(Aws::S3::Client) }
-  let (:s3_resource) { instance_double(Aws::S3::Resource) }
+  let(:s3_client) { instance_double(Aws::S3::Client) }
+  let(:s3_resource) { instance_double(Aws::S3::Resource) }
+  let(:bucket) { instance_double(Aws::S3::Bucket) }
+  let(:s3_object) { instance_double(Aws::S3::Object) }
 
   before do
     Middleman::S3Sync.s3_sync_options = options
 
     options.build_dir = "build"
     options.prefer_gzip = false
+    options.bucket = "test-bucket"
+    options.acl = "public-read"
 
     allow(Aws::S3::Client).to receive(:new).and_return(s3_client)
     allow(Aws::S3::Resource).to receive(:new).and_return(s3_resource)
+    allow(s3_resource).to receive(:bucket).and_return(bucket)
+    allow(bucket).to receive(:exists?).and_return(true)
+    allow(bucket).to receive(:object).and_return(s3_object)
+    allow(s3_object).to receive(:head).and_return(nil)
+    allow(s3_object).to receive(:put).and_return(true)
+    allow(s3_object).to receive(:delete).and_return(true)
+    
+    # Allow Middleman::S3Sync to use our mocked bucket
+    allow(Middleman::S3Sync).to receive(:bucket).and_return(bucket)
   end
 
   context "a new resource" do
