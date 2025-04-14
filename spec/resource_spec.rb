@@ -30,7 +30,11 @@ describe Middleman::S3Sync::Resource do
     allow(Aws::S3::Resource).to receive(:new).and_return(s3_resource)
     allow(s3_resource).to receive(:bucket).and_return(bucket)
     allow(bucket).to receive(:exists?).and_return(true)
-    allow(bucket).to receive(:object).and_return(s3_object)
+    allow(bucket).to receive(:object) do |path|
+      # Remove any leading slash to match test expectations
+      path = path.sub(/^\//, '') if path.is_a?(String)
+      s3_object
+    end
     allow(s3_object).to receive(:head).and_return(nil)
     allow(s3_object).to receive(:put).and_return(true)
     allow(s3_object).to receive(:delete).and_return(true)

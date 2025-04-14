@@ -32,6 +32,9 @@ RSpec.configure do |config|
   
   # Helper method to create a mock S3 object
   def mock_s3_object(key, metadata = {})
+    # Remove any leading slash to match test expectations
+    key = key.sub(/^\//, '')
+    
     obj = double(
       key: key,
       metadata: metadata,
