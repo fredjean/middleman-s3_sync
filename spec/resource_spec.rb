@@ -12,10 +12,18 @@ describe Middleman::S3Sync::Resource do
       content_type: 'text/html'
     )
   }
+
+  let (:s3_client) { instance_double(Aws::S3::Client) }
+  let (:s3_resource) { instance_double(Aws::S3::Resource) }
+
   before do
     Middleman::S3Sync.s3_sync_options = options
+
     options.build_dir = "build"
     options.prefer_gzip = false
+
+    allow(Aws::S3::Client).to receive(:new).and_return(s3_client)
+    allow(Aws::S3::Resource).to receive(:new).and_return(s3_resource)
   end
 
   context "a new resource" do
@@ -57,9 +65,9 @@ describe Middleman::S3Sync::Resource do
         expect(resource).to be_local
       end
 
-      its(:path) { is_expected.to eq 'path/to/resource.html' }
+      its(:path) { is_expected.to eq '/path/to/resource.html' }
       its(:local_path) { is_expected.to eq 'build/path/to/resource.html' }
-      its(:remote_path) { is_expected.to eq 'bob/path/to/resource.html' }
+      its(:remote_path) { is_expected.to eq '/path/to/resource.html' }
     end
 
     context "gzipped" do
