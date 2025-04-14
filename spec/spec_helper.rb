@@ -49,6 +49,9 @@ RSpec.configure do |config|
     allow(obj).to receive(:put).and_return(true)
     allow(obj).to receive(:delete).and_return(true)
     
+    # Print debug info
+    puts "Created mock S3 object with key: #{key}"
+    
     obj
   end
   
