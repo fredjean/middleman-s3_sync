@@ -28,6 +28,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'ansi', '~> 1.5.0'
   gem.add_runtime_dependency 'mime-types', '~> 3.1'
   gem.add_runtime_dependency 'base64'
+  gem.add_runtime_dependency 'nokogiri', '>= 1.18.4'
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'pry'
