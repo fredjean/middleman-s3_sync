@@ -1,5 +1,5 @@
 module Middleman
   module S3Sync
-    VERSION = "4.0.3"
+    VERSION = "4.5.0"
   end
 end

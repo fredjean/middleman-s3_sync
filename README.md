@@ -79,7 +79,8 @@ The following defaults apply to the configuration items:
 
 ## Setting AWS Credentials
 
-There are several ways to provide the AWS credentials for s3_sync:
+There are several ways to provide the AWS credentials for s3_sync. I strongly recommend using some form of federation to assume a role with permissions to publish to your
+S3 bucket. However, you can still use the following methods::We
 
 #### Through `config.rb`
 
@@ -118,6 +119,7 @@ map to the following values:
 | --------------------- | ---------------------------------- |
 | aws_access_key_id     | ```ENV['AWS_ACCESS_KEY_ID']```     |
 | aws_secret_access_key | ```ENV['AWS_SECRET_ACCESS_KEY']``` |
+| aws_session_token     | ```ENV['AWS_SESSION_TOKEN']```     |
 | bucket                | ```ENV['AWS_BUCKET']```            |
 
 The environment is used when the credentials are not set in the activate
@@ -182,17 +184,17 @@ You can specify which environment to run Middleman under using the
 
     $ middleman s3_sync --environment=production
 
-You can set up separate sync environments in config.rb like this: 
+You can set up separate sync environments in config.rb like this:
 
 ```ruby
 	configure :staging do
 		activate :s3_sync do |s3_sync|
 			s3_sync.bucket = '<bucket'
-			... 
+			...
     	end
     end
 ```
-    
+
 See the Usage section above for all the s3_sync. options to include. Currently, the .s3_sync file does not allow separate environments.
 
 #### Dry Run
