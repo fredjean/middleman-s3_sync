@@ -79,41 +79,38 @@ The following defaults apply to the configuration items:
 
 ## Setting AWS Credentials
 
-There are several ways to provide the AWS credentials for s3_sync. I strongly recommend using some form of federation to assume a role with permissions to publish to your
-S3 bucket. However, you can still use the following methods::We
+There are several secure ways to provide AWS credentials for s3_sync. Using temporary, least-privilege credentials is strongly recommended.
 
-#### Through `config.rb`
+#### Best Practices for AWS Credentials (Recommended)
 
-You can set the aws_access_key_id and aws_secret_access_key in the block
-that is passed to the activate method.
+##### 1. AWS IAM Roles (Most Secure)
 
-> I strongly discourage using this method. This will lead you to add and commit these changes
-> to your SCM and potentially expose sensitive information to the world.
+###### For CI/CD and Cloud Environments
+- **EC2 Instance Profiles**: If running on EC2, use IAM roles attached to your instance. Credentials are automatically rotated and managed by AWS.
+- **ECS Task Roles**: For container workloads, use task roles to provide permissions to specific containers.
+- **CI/CD Service Roles**: Most CI/CD services (GitHub Actions, CircleCI, etc.) offer native AWS integrations that support assuming IAM roles.
 
-#### Through `.s3_sync` File
+###### For Local Development
+- **AWS IAM Identity Center (SSO)** and configured profiles in your AWS config file
+- **AWS CLI credential process** to integrate with external identity providers
+- **Role assumption** with short-lived credentials through `aws sts assume-role`
 
-You can create a `.s3_sync` at the root of your middleman project.
-The credentials are passed in the YAML format. The keys match the
-options keys.
+To use these methods, you don't need to specify credentials in your Middleman configuration. The AWS SDK will automatically detect and use them.
 
-The .s3_sync file takes precedence to the configuration passed in the
-activate method.
+##### 2. Environment Variables with Temporary Credentials
 
-A sample `.s3_sync` file is included at the root of this repo.
+Using environment variables with short-lived credentials from role assumption:
 
-> Make sure to add .s3_sync to your ignore list if you choose this approach. Not doing so may expose
-> credentials to the world.
+```bash
+# Obtain temporary credentials via assume-role or similar
+# Then set these environment variables
+export AWS_ACCESS_KEY_ID="temporary-access-key"
+export AWS_SECRET_ACCESS_KEY="temporary-secret-key"
+export AWS_SESSION_TOKEN="temporary-session-token"
+export AWS_BUCKET="your-bucket-name"
+```
 
-#### Through the Command Line
-
-The aws credentials can also be passed via a command line options
-`--aws_access_key_id` (`-k`) and `--aws_secret_access_key` (`-s`). They should override
-any other settings if specified.
-
-#### Through Environment
-
-You can also pass the credentials through environment variables. They
-map to the following values:
+These environment variables are used when credentials are not otherwise specified:
 
 | Setting               | Environment Variable               |
 | --------------------- | ---------------------------------- |
@@ -122,37 +119,111 @@ map to the following values:
 | aws_session_token     | ```ENV['AWS_SESSION_TOKEN']```     |
 | bucket                | ```ENV['AWS_BUCKET']```            |
 
-The environment is used when the credentials are not set in the activate
-method or passed through the ```.s3_sync``` configuration file.
+#### Alternative Methods (Not Recommended for Production)
 
-#### Through IAM role
+The following methods are less secure and should be avoided in production environments:
 
-Alternatively, if you are running builds on EC2 instance which has approrpiate IAM role, then you don't need to think about specifying credentials at all – they will be pulled from AWS metadata service.
+##### Through `.s3_sync` File
+
+You can create a `.s3_sync` at the root of your middleman project.
+The credentials are passed in the YAML format. The keys match the options keys.
+
+A sample `.s3_sync` file is included at the root of this repo.
+
+> **SECURITY WARNING**: If using this approach, ensure you add `.s3_sync` to your `.gitignore` to prevent
+> accidentally committing credentials to your repository. Consider using this only for local development
+> and only with temporary credentials.
+
+##### Through `config.rb`
+
+You can set the AWS credentials in the activation block, but this is strongly discouraged:
+
+> **SECURITY WARNING**: This method could lead to credentials being committed to version control,
+> potentially exposing sensitive information. Never use long-lived credentials with this method.
+
+##### Through Command Line
+
+Credentials can be passed via command line options, but this may expose them in shell history:
+
+> **SECURITY WARNING**: Command line parameters may be visible in process listings or shell history.
+> Consider using environment variables or IAM roles instead.
 
 #### IAM Policy
 
-Here's a sample IAM policy that will allow a user to update the site
-contained in a bucket named "mysite.com":
+Here's a sample IAM policy with least-privilege permissions that will allow syncing to a bucket named "mysite.com":
 
-```
+```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": "s3:*",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning"
+      ],
       "Resource": "arn:aws:s3:::mysite.com"
     },
     {
       "Effect": "Allow",
-      "Action": "s3:*",
+      "Action": [
+        "s3:PutObject",
+        "s3:PutObjectAcl",
+        "s3:GetObject",
+        "s3:GetObjectAcl",
+        "s3:DeleteObject",
+        "s3:HeadObject"
+      ],
       "Resource": "arn:aws:s3:::mysite.com/*"
     }
   ]
 }
 ```
 
-This will give full access to both the bucket and it's contents.
+If you're using additional features, you may need these permissions as well:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutBucketWebsite",
+        "s3:PutBucketVersioning"
+      ],
+      "Resource": "arn:aws:s3:::mysite.com",
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "true"
+        }
+      }
+    }
+  ]
+}
+```
+
+This policy grants only the specific permissions needed:
+
+- **For the bucket itself**:
+  - `s3:ListBucket`: To list objects in the bucket
+  - `s3:GetBucketLocation`: To determine the bucket's region
+  - `s3:GetBucketVersioning`: To check versioning status
+  - `s3:PutBucketVersioning`: If using the `version_bucket` option
+  - `s3:PutBucketWebsite`: If using website configuration (index/error documents)
+
+- **For objects in the bucket**:
+  - `s3:PutObject`: To create/update objects
+  - `s3:PutObjectAcl`: To set ACLs on objects
+  - `s3:GetObject`: To retrieve objects for comparison
+  - `s3:GetObjectAcl`: To read existing ACLs
+  - `s3:DeleteObject`: To delete stray objects (when `delete: true`)
+  - `s3:HeadObject`: To retrieve object metadata via HEAD requests
+
+The source code shows that middleman-s3_sync uses HEAD requests (`object.head`) to compare resources, checks and sets bucket versioning when configured, and can set website configuration for index and error documents.
+
+Note: You can further restrict these permissions by adding conditions or limiting them to specific prefixes if you're only publishing to a subdirectory of the bucket.
 
 ## Command Line Usage
 
