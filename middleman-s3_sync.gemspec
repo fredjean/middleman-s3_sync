@@ -22,6 +22,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'middleman-cli'
   gem.add_runtime_dependency 'unf'
   gem.add_runtime_dependency 'aws-sdk-s3'
+  gem.add_runtime_dependency 'aws-sdk-cloudfront'
   gem.add_runtime_dependency 'map'
   gem.add_runtime_dependency 'parallel'
   gem.add_runtime_dependency 'ruby-progressbar'

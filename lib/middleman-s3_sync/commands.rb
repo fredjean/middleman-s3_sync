@@ -65,6 +65,30 @@ module Middleman
                    type: :string,
                    desc: 'Print instrument messages.'
 
+      class_option :cloudfront_distribution_id,
+                   aliases: '-d',
+                   type: :string,
+                   desc: 'CloudFront distribution ID for invalidation.'
+
+      class_option :cloudfront_invalidate,
+                   aliases: '-c',
+                   type: :boolean,
+                   desc: 'Invalidate CloudFront cache after sync.'
+
+      class_option :cloudfront_invalidate_all,
+                   aliases: '-a',
+                   type: :boolean,
+                   desc: 'Invalidate all paths (/*) instead of only changed files.'
+
+      class_option :cloudfront_invalidation_batch_size,
+                   type: :numeric,
+                   desc: 'Maximum number of paths to invalidate in a single request (default: 1000).'
+
+      class_option :cloudfront_wait,
+                   aliases: '-w',
+                   type: :boolean,
+                   desc: 'Wait for CloudFront invalidation to complete before exiting.'
+
       def s3_sync
         env = options[:environment].to_s.to_sym
         verbose = options[:verbose] ? 0 : 1
@@ -99,6 +123,11 @@ module Middleman
           s3_sync_options.prefix = s3_sync_options.prefix.end_with?('/') ? s3_sync_options.prefix : s3_sync_options.prefix + '/'
         end
         s3_sync_options.dry_run = options[:dry_run] if options[:dry_run]
+        s3_sync_options.cloudfront_distribution_id = options[:cloudfront_distribution_id] if options[:cloudfront_distribution_id]
+        s3_sync_options.cloudfront_invalidate = options[:cloudfront_invalidate] if options[:cloudfront_invalidate]
+        s3_sync_options.cloudfront_invalidate_all = options[:cloudfront_invalidate_all] if options[:cloudfront_invalidate_all]
+        s3_sync_options.cloudfront_invalidation_batch_size = options[:cloudfront_invalidation_batch_size] if options[:cloudfront_invalidation_batch_size]
+        s3_sync_options.cloudfront_wait = options[:cloudfront_wait] if options[:cloudfront_wait]
 
         ::Middleman::S3Sync.sync()
       end

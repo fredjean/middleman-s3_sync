@@ -54,6 +54,9 @@ activate :s3_sync do |s3_sync|
   s3_sync.version_bucket             = false
   s3_sync.index_document             = 'index.html'
   s3_sync.error_document             = '404.html'
+  s3_sync.cloudfront_distribution_id = 'E1234567890123' # CloudFront distribution ID
+  s3_sync.cloudfront_invalidate      = false # Enable CloudFront invalidation
+  s3_sync.cloudfront_invalidate_all  = false # Invalidate all paths (/*) or only changed files
 end
 ```
 
@@ -76,6 +79,10 @@ The following defaults apply to the configuration items:
 | encryption                 | ```false```                        |
 | acl                        | ```'public-read'```                |
 | version_bucket             | ```false```                        |
+| cloudfront_distribution_id | -                                  |
+| cloudfront_invalidate      | ```false```                        |
+| cloudfront_invalidate_all  | ```false```                        |
+| cloudfront_wait            | ```false```                        |
 
 ## Setting AWS Credentials
 
@@ -147,6 +154,102 @@ Credentials can be passed via command line options, but this may expose them in 
 
 > **SECURITY WARNING**: Command line parameters may be visible in process listings or shell history.
 > Consider using environment variables or IAM roles instead.
+
+## CloudFront Invalidation
+
+The gem can automatically invalidate CloudFront cache after a successful sync. This ensures that your CloudFront distribution serves the latest content immediately after deployment.
+
+### Configuration
+
+```ruby
+activate :s3_sync do |s3_sync|
+  # ... other configuration ...
+  s3_sync.cloudfront_distribution_id = 'E1234567890123'  # Your CloudFront distribution ID
+  s3_sync.cloudfront_invalidate      = true             # Enable invalidation
+  s3_sync.cloudfront_invalidate_all  = false            # Invalidate only changed files
+end
+```
+
+### Configuration Options
+
+| Setting                           | Default     | Description |
+| --------------------------------- | ----------- | ----------- |
+| cloudfront_distribution_id        | -           | CloudFront distribution ID to invalidate |
+| cloudfront_invalidate             | ```false``` | Enable CloudFront invalidation after sync |
+| cloudfront_invalidate_all         | ```false``` | Invalidate all paths (/*) instead of only changed files |
+| cloudfront_invalidation_batch_size| ```1000```  | Maximum paths per invalidation request |
+| cloudfront_wait                   | ```false``` | Wait for CloudFront invalidation to complete |
+</edits>
+
+### Command Line Options
+
+You can also control CloudFront invalidation via command line:
+
+```bash
+# Enable CloudFront invalidation for this sync
+middleman s3_sync --cloudfront-invalidate --cloudfront-distribution-id E1234567890123
+
+# Invalidate all paths instead of just changed files
+middleman s3_sync --cloudfront-invalidate-all --cloudfront-distribution-id E1234567890123
+
+# Wait for invalidation to complete before exiting
+middleman s3_sync --cloudfront-invalidate --cloudfront-wait --cloudfront-distribution-id E1234567890123
+
+# Custom batch size for large numbers of files
+middleman s3_sync --cloudfront-invalidate --cloudfront-invalidation-batch-size 500 --cloudfront-distribution-id E1234567890123
+
+# Short aliases
+middleman s3_sync -c -d E1234567890123              # Basic invalidation
+middleman s3_sync -a -d E1234567890123              # Invalidate all paths
+middleman s3_sync -c -w -d E1234567890123           # Invalidate and wait
+middleman s3_sync -c -a -w -d E1234567890123        # Invalidate all and wait
+```
+
+#### Available CloudFront Command Line Options
+
+| Option | Short | Description |
+| ------ | ----- | ----------- |
+| `--cloudfront-distribution-id` | `-d` | CloudFront distribution ID |
+| `--cloudfront-invalidate` | `-c` | Enable CloudFront invalidation |
+| `--cloudfront-invalidate-all` | `-a` | Invalidate all paths (/*) |
+| `--cloudfront-invalidation-batch-size` | - | Max paths per request (default: 1000) |
+| `--cloudfront-wait` | `-w` | Wait for invalidation to complete |
+
+### How It Works
+
+1. **Smart Invalidation**: By default, only files that were created, updated, or deleted during the sync are invalidated
+2. **Path Optimization**: Duplicate paths are removed and redundant paths (covered by wildcards) are eliminated
+3. **Batch Processing**: Large numbers of paths are split into multiple invalidation requests to respect CloudFront limits
+4. **Error Handling**: Invalidation failures are logged but don't stop the sync process
+5. **Dry Run Support**: Use `--dry-run` to see what would be invalidated without making actual API calls
+
+### IAM Permissions
+
+Your AWS credentials need CloudFront permissions in addition to S3:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetInvalidation",
+        "cloudfront:ListInvalidations"
+      ],
+      "Resource": "arn:aws:cloudfront::*:distribution/E1234567890123"
+    }
+  ]
+}
+```
+
+### Cost Considerations
+
+- CloudFront allows 1,000 free invalidation paths per month
+- Additional invalidations cost $0.005 per path
+- Use `cloudfront_invalidate_all: true` for major updates to minimize costs (counts as 1 path)
+- Consider the trade-off between immediate cache invalidation and cost
 
 #### IAM Policy
 

@@ -5,6 +5,7 @@ require 'middleman/s3_sync/options'
 require 'middleman/s3_sync/caching_policy'
 require 'middleman/s3_sync/status'
 require 'middleman/s3_sync/resource'
+require 'middleman/s3_sync/cloudfront'
 require 'middleman-s3_sync/extension'
 require 'middleman/redirect'
 require 'parallel'
@@ -25,13 +26,22 @@ module Middleman
       attr_reader   :app
 
       THREADS_COUNT = 8
+      
+      # Track paths that were changed during sync for CloudFront invalidation
+      attr_accessor :invalidation_paths
 
       def sync()
         @app ||= ::Middleman::Application.new
+        @invalidation_paths = []
 
         say_status "Let's see if there's work to be done..."
         unless work_to_be_done?
           say_status "All S3 files are up to date."
+          
+          # Still run CloudFront invalidation if requested for all paths
+          if s3_sync_options.cloudfront_invalidate && s3_sync_options.cloudfront_invalidate_all
+            CloudFront.invalidate([], s3_sync_options)
+          end
           return
         end
 
@@ -45,6 +55,11 @@ module Middleman
         create_resources
         update_resources
         delete_resources
+        
+        # Invalidate CloudFront cache if requested
+        if s3_sync_options.cloudfront_invalidate
+          CloudFront.invalidate(@invalidation_paths, s3_sync_options)
+        end
       end
 
       def bucket
@@ -59,6 +74,13 @@ module Middleman
 
       def add_local_resource(mm_resource)
         s3_sync_resources[mm_resource.destination_path] = S3Sync::Resource.new(mm_resource, remote_resource_for_path(mm_resource.destination_path)).tap(&:status)
+      end
+      
+      def add_invalidation_path(path)
+        @invalidation_paths ||= []
+        # Normalize path for CloudFront (ensure it starts with /)
+        normalized_path = path.start_with?('/') ? path : "/#{path}"
+        @invalidation_paths << normalized_path unless @invalidation_paths.include?(normalized_path)
       end
 
       def remote_only_paths
@@ -168,15 +190,24 @@ module Middleman
       end
 
       def create_resources
-        Parallel.map(files_to_create, in_threads: THREADS_COUNT, &:create!)
+        Parallel.map(files_to_create, in_threads: THREADS_COUNT) do |resource|
+          resource.create!
+          add_invalidation_path(resource.path)
+        end
       end
 
       def update_resources
-        Parallel.map(files_to_update, in_threads: THREADS_COUNT, &:update!)
+        Parallel.map(files_to_update, in_threads: THREADS_COUNT) do |resource|
+          resource.update!
+          add_invalidation_path(resource.path)
+        end
       end
 
       def delete_resources
-        Parallel.map(files_to_delete, in_threads: THREADS_COUNT, &:destroy!)
+        Parallel.map(files_to_delete, in_threads: THREADS_COUNT) do |resource|
+          resource.destroy!
+          add_invalidation_path(resource.path)
+        end
       end
 
       def ignore_resources

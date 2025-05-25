@@ -29,6 +29,11 @@ module Middleman
     option :error_document, nil, 'S3 custom error document path'
     option :content_types, {}, 'Custom content types'
     option :ignore_paths, [], 'Paths that should be ignored during sync, strings or regex are allowed'
+    option :cloudfront_distribution_id, nil, 'CloudFront distribution ID for invalidation'
+    option :cloudfront_invalidate, false, 'Whether to invalidate CloudFront cache after sync'
+    option :cloudfront_invalidate_all, false, 'Whether to invalidate all paths (/*) or only changed files'
+    option :cloudfront_invalidation_batch_size, 1000, 'Maximum number of paths to invalidate in a single request'
+    option :cloudfront_wait, false, 'Whether to wait for CloudFront invalidation to complete'
 
     expose_to_config :s3_sync_options, :default_caching_policy, :caching_policy
 
