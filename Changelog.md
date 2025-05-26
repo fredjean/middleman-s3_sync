@@ -2,6 +2,15 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v4.6.1
+
+* Add CloudFront rate limit handling with exponential backoff retry logic
+* Add configurable retry settings: `cloudfront_invalidation_max_retries` and `cloudfront_invalidation_batch_delay`
+* Improve CloudFront error handling for "Rate exceeded" and "Throttling" errors
+* Add command line options for retry configuration
+* Update documentation with retry configuration examples
+* Increase default batch delay from 1 to 2 seconds for better rate limit prevention
+
 ## v4.6.0
 
 * Add comprehensive CloudFront invalidation support with smart path tracking

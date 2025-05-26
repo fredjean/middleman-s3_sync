@@ -20,4 +20,6 @@ cloudfront_distribution_id: <CloudFront Distribution ID>  # e.g., E1234567890123
 cloudfront_invalidate: false                              # Set to true to enable
 cloudfront_invalidate_all: false                          # Set to true to invalidate all paths (/*) 
 cloudfront_invalidation_batch_size: 1000                  # Max paths per invalidation request
+cloudfront_invalidation_max_retries: 5                    # Max retries for rate-limited requests
+cloudfront_invalidation_batch_delay: 2                    # Delay in seconds between invalidation batches
 cloudfront_wait: false                                    # Set to true to wait for invalidation to complete

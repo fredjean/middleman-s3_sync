@@ -84,6 +84,14 @@ module Middleman
                    type: :numeric,
                    desc: 'Maximum number of paths to invalidate in a single request (default: 1000).'
 
+      class_option :cloudfront_invalidation_max_retries,
+                   type: :numeric,
+                   desc: 'Maximum number of retries for rate-limited invalidation requests (default: 5).'
+
+      class_option :cloudfront_invalidation_batch_delay,
+                   type: :numeric,
+                   desc: 'Delay in seconds between invalidation batches (default: 2).'
+
       class_option :cloudfront_wait,
                    aliases: '-w',
                    type: :boolean,
@@ -127,6 +135,8 @@ module Middleman
         s3_sync_options.cloudfront_invalidate = options[:cloudfront_invalidate] if options[:cloudfront_invalidate]
         s3_sync_options.cloudfront_invalidate_all = options[:cloudfront_invalidate_all] if options[:cloudfront_invalidate_all]
         s3_sync_options.cloudfront_invalidation_batch_size = options[:cloudfront_invalidation_batch_size] if options[:cloudfront_invalidation_batch_size]
+        s3_sync_options.cloudfront_invalidation_max_retries = options[:cloudfront_invalidation_max_retries] if options[:cloudfront_invalidation_max_retries]
+        s3_sync_options.cloudfront_invalidation_batch_delay = options[:cloudfront_invalidation_batch_delay] if options[:cloudfront_invalidation_batch_delay]
         s3_sync_options.cloudfront_wait = options[:cloudfront_wait] if options[:cloudfront_wait]
 
         ::Middleman::S3Sync.sync()

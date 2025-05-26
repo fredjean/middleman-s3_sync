@@ -31,11 +31,12 @@ module Middleman
           path_batches.each_with_index do |batch, index|
             say_status "Creating invalidation batch #{index + 1}/#{path_batches.length} (#{batch.length} paths)"
             
-            invalidation_id = create_invalidation(batch, options)
+            invalidation_id = create_invalidation_with_retry(batch, options)
             invalidation_ids << invalidation_id if invalidation_id
             
-            # Add a small delay between batches to avoid rate limiting
-            sleep(1) if path_batches.length > 1 && index < path_batches.length - 1
+            # Add a delay between batches to avoid rate limiting
+            delay = options.cloudfront_invalidation_batch_delay || 2
+            sleep(delay) if path_batches.length > 1 && index < path_batches.length - 1
           end
 
           if invalidation_ids.any?
@@ -119,6 +120,29 @@ module Middleman
           result
         end
 
+        def create_invalidation_with_retry(paths, options)
+          max_retries = options.cloudfront_invalidation_max_retries || 5
+          retries = 0
+          base_delay = 1
+          
+          begin
+            create_invalidation(paths, options)
+          rescue Aws::CloudFront::Errors::ServiceError => e
+            if (e.message.include?('Rate exceeded') || e.message.include?('Throttling')) && retries < max_retries
+              retries += 1
+              delay = base_delay * (2 ** (retries - 1)) + rand(1..3) # Exponential backoff with jitter
+              say_status "#{ANSI.yellow{"Rate limit hit, retrying in #{delay} seconds..."}} (attempt #{retries}/#{max_retries})"
+              sleep(delay)
+              retry
+            else
+              say_status "#{ANSI.red{'Failed to create CloudFront invalidation:'}} #{e.message}"
+              say_status "Paths: #{paths.join(', ')}" if options.verbose
+              raise e unless options.verbose
+              nil
+            end
+          end
+        end
+
         def create_invalidation(paths, options)
           caller_reference = "middleman-s3_sync-#{Time.now.to_i}-#{SecureRandom.hex(4)}"
           
@@ -134,11 +158,6 @@ module Middleman
           })
 
           response.invalidation.id
-        rescue Aws::CloudFront::Errors::ServiceError => e
-          say_status "#{ANSI.red{'Failed to create CloudFront invalidation:'}} #{e.message}"
-          say_status "Paths: #{paths.join(', ')}" if options.verbose
-          raise e unless options.verbose
-          nil
         end
 
         def cloudfront_client(options)

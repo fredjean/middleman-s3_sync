@@ -8,6 +8,8 @@ describe Middleman::S3Sync::CloudFront do
       cloudfront_distribution_id: 'E1234567890123',
       cloudfront_invalidate_all: false,
       cloudfront_invalidation_batch_size: 1000,
+      cloudfront_invalidation_max_retries: 5,
+      cloudfront_invalidation_batch_delay: 2,
       cloudfront_wait: false,
       aws_access_key_id: 'test_key',
       aws_secret_access_key: 'test_secret',
@@ -92,6 +94,8 @@ describe Middleman::S3Sync::CloudFront do
           cloudfront_distribution_id: 'E1234567890123',
           cloudfront_invalidate_all: true,
           cloudfront_invalidation_batch_size: 1000,
+          cloudfront_invalidation_max_retries: 5,
+          cloudfront_invalidation_batch_delay: 2,
           cloudfront_wait: false,
           aws_access_key_id: 'test_key',
           aws_secret_access_key: 'test_secret',
@@ -201,6 +205,8 @@ describe Middleman::S3Sync::CloudFront do
           cloudfront_distribution_id: 'E1234567890123',
           cloudfront_invalidate_all: false,
           cloudfront_invalidation_batch_size: 2,
+          cloudfront_invalidation_max_retries: 5,
+          cloudfront_invalidation_batch_delay: 1,
           cloudfront_wait: false,
           aws_access_key_id: 'test_key',
           aws_secret_access_key: 'test_secret',
@@ -239,6 +245,112 @@ describe Middleman::S3Sync::CloudFront do
         }.to raise_error(Aws::CloudFront::Errors::ServiceError)
       end
 
+      context 'when rate limit is exceeded' do
+        let(:rate_error) { Aws::CloudFront::Errors::ServiceError.new(nil, 'Rate exceeded') }
+
+        it 'retries with exponential backoff' do
+          client = double('cloudfront_client')
+          allow(Aws::CloudFront::Client).to receive(:new).and_return(client)
+          
+          # Fail twice with rate limit, then succeed
+          call_count = 0
+          allow(client).to receive(:create_invalidation) do
+            call_count += 1
+            if call_count <= 2
+              raise rate_error
+            else
+              invalidation_response
+            end
+          end
+          
+          # Allow normal status messages but expect retry messages
+          allow(described_class).to receive(:say_status)
+          expect(described_class).to receive(:say_status).with(
+            match(/Rate limit hit, retrying in \d+ seconds.*attempt 1\/5/)
+          ).ordered
+          expect(described_class).to receive(:say_status).with(
+            match(/Rate limit hit, retrying in \d+ seconds.*attempt 2\/5/)
+          ).ordered
+          
+          # Expect sleep calls for backoff
+          expect(described_class).to receive(:sleep).twice
+          
+          result = described_class.invalidate(['/path1'], options)
+          expect(result).to eq(['I1234567890123'])
+        end
+
+        it 'gives up after max retries and raises error' do
+          rate_limited_options = double(
+            cloudfront_invalidate: true,
+            cloudfront_distribution_id: 'E1234567890123',
+            cloudfront_invalidate_all: false,
+            cloudfront_invalidation_batch_size: 1000,
+            cloudfront_invalidation_max_retries: 2,
+            cloudfront_invalidation_batch_delay: 2,
+            cloudfront_wait: false,
+            aws_access_key_id: 'test_key',
+            aws_secret_access_key: 'test_secret',
+            aws_session_token: nil,
+            dry_run: false,
+            verbose: false
+          )
+          
+          client = double('cloudfront_client')
+          allow(Aws::CloudFront::Client).to receive(:new).and_return(client)
+          
+          # Fail max_retries + 1 times
+          expect(client).to receive(:create_invalidation).exactly(3).times.and_raise(rate_error)
+          
+          # Allow normal status messages
+          allow(described_class).to receive(:say_status)
+          
+          # Expect retry status messages
+          expect(described_class).to receive(:say_status).with(
+            match(/Rate limit hit, retrying in \d+ seconds.*attempt 1\/2/)
+          )
+          expect(described_class).to receive(:say_status).with(
+            match(/Rate limit hit, retrying in \d+ seconds.*attempt 2\/2/)
+          )
+          expect(described_class).to receive(:say_status).with(
+            match(/Failed to create CloudFront invalidation.*Rate exceeded/)
+          )
+          
+          # Expect sleep calls for backoff
+          expect(described_class).to receive(:sleep).twice
+          
+          expect {
+            described_class.invalidate(['/path1'], rate_limited_options)
+          }.to raise_error(Aws::CloudFront::Errors::ServiceError)
+        end
+
+        it 'handles throttling errors the same as rate exceeded' do
+          throttling_error = Aws::CloudFront::Errors::ServiceError.new(nil, 'Throttling: Request was throttled')
+          
+          client = double('cloudfront_client')
+          allow(Aws::CloudFront::Client).to receive(:new).and_return(client)
+          
+          call_count = 0
+          allow(client).to receive(:create_invalidation) do
+            call_count += 1
+            if call_count == 1
+              raise throttling_error
+            else
+              invalidation_response
+            end
+          end
+          
+          # Allow normal status messages but expect retry message
+          allow(described_class).to receive(:say_status)
+          expect(described_class).to receive(:say_status).with(
+            match(/Rate limit hit, retrying in \d+ seconds.*attempt 1\/5/)
+          ).ordered
+          expect(described_class).to receive(:sleep).once
+          
+          result = described_class.invalidate(['/path1'], options)
+          expect(result).to eq(['I1234567890123'])
+        end
+      end
+
       context 'when verbose mode is enabled' do
         let(:options) do
           double(
@@ -246,6 +358,8 @@ describe Middleman::S3Sync::CloudFront do
             cloudfront_distribution_id: 'E1234567890123',
             cloudfront_invalidate_all: false,
             cloudfront_invalidation_batch_size: 1000,
+            cloudfront_invalidation_max_retries: 5,
+            cloudfront_invalidation_batch_delay: 2,
             cloudfront_wait: false,
             aws_access_key_id: 'test_key',
             aws_secret_access_key: 'test_secret',
@@ -285,6 +399,8 @@ describe Middleman::S3Sync::CloudFront do
           cloudfront_distribution_id: 'E1234567890123',
           cloudfront_invalidate_all: false,
           cloudfront_invalidation_batch_size: 1000,
+          cloudfront_invalidation_max_retries: 5,
+          cloudfront_invalidation_batch_delay: 2,
           cloudfront_wait: true,
           aws_access_key_id: 'test_key',
           aws_secret_access_key: 'test_secret',
@@ -336,6 +452,8 @@ describe Middleman::S3Sync::CloudFront do
           cloudfront_distribution_id: 'E1234567890123',
           cloudfront_invalidate_all: false,
           cloudfront_invalidation_batch_size: 1000,
+          cloudfront_invalidation_max_retries: 5,
+          cloudfront_invalidation_batch_delay: 2,
           cloudfront_wait: false,
           aws_access_key_id: 'test_key',
           aws_secret_access_key: 'test_secret',
@@ -367,6 +485,8 @@ describe Middleman::S3Sync::CloudFront do
           cloudfront_distribution_id: 'E1234567890123',
           cloudfront_invalidate_all: false,
           cloudfront_invalidation_batch_size: 1000,
+          cloudfront_invalidation_max_retries: 5,
+          cloudfront_invalidation_batch_delay: 2,
           cloudfront_wait: false,
           aws_access_key_id: nil,
           aws_secret_access_key: nil,

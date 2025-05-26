@@ -172,14 +172,15 @@ end
 
 ### Configuration Options
 
-| Setting                           | Default     | Description |
-| --------------------------------- | ----------- | ----------- |
-| cloudfront_distribution_id        | -           | CloudFront distribution ID to invalidate |
-| cloudfront_invalidate             | ```false``` | Enable CloudFront invalidation after sync |
-| cloudfront_invalidate_all         | ```false``` | Invalidate all paths (/*) instead of only changed files |
-| cloudfront_invalidation_batch_size| ```1000```  | Maximum paths per invalidation request |
-| cloudfront_wait                   | ```false``` | Wait for CloudFront invalidation to complete |
-</edits>
+| Setting                               | Default     | Description |
+| ------------------------------------- | ----------- | ----------- |
+| cloudfront_distribution_id            | -           | CloudFront distribution ID to invalidate |
+| cloudfront_invalidate                 | ```false``` | Enable CloudFront invalidation after sync |
+| cloudfront_invalidate_all             | ```false``` | Invalidate all paths (/*) instead of only changed files |
+| cloudfront_invalidation_batch_size    | ```1000```  | Maximum paths per invalidation request |
+| cloudfront_invalidation_max_retries   | ```5```     | Maximum retries for rate-limited requests |
+| cloudfront_invalidation_batch_delay   | ```2```     | Delay in seconds between invalidation batches |
+| cloudfront_wait                       | ```false``` | Wait for CloudFront invalidation to complete |
 
 ### Command Line Options
 
@@ -198,6 +199,9 @@ middleman s3_sync --cloudfront-invalidate --cloudfront-wait --cloudfront-distrib
 # Custom batch size for large numbers of files
 middleman s3_sync --cloudfront-invalidate --cloudfront-invalidation-batch-size 500 --cloudfront-distribution-id E1234567890123
 
+# Adjust retry behavior for rate limiting
+middleman s3_sync --cloudfront-invalidate --cloudfront-invalidation-max-retries 3 --cloudfront-invalidation-batch-delay 5 --cloudfront-distribution-id E1234567890123
+
 # Short aliases
 middleman s3_sync -c -d E1234567890123              # Basic invalidation
 middleman s3_sync -a -d E1234567890123              # Invalidate all paths
@@ -213,6 +217,8 @@ middleman s3_sync -c -a -w -d E1234567890123        # Invalidate all and wait
 | `--cloudfront-invalidate` | `-c` | Enable CloudFront invalidation |
 | `--cloudfront-invalidate-all` | `-a` | Invalidate all paths (/*) |
 | `--cloudfront-invalidation-batch-size` | - | Max paths per request (default: 1000) |
+| `--cloudfront-invalidation-max-retries` | - | Max retries for rate limits (default: 5) |
+| `--cloudfront-invalidation-batch-delay` | - | Delay between batches in seconds (default: 2) |
 | `--cloudfront-wait` | `-w` | Wait for invalidation to complete |
 
 ### How It Works
@@ -220,8 +226,9 @@ middleman s3_sync -c -a -w -d E1234567890123        # Invalidate all and wait
 1. **Smart Invalidation**: By default, only files that were created, updated, or deleted during the sync are invalidated
 2. **Path Optimization**: Duplicate paths are removed and redundant paths (covered by wildcards) are eliminated
 3. **Batch Processing**: Large numbers of paths are split into multiple invalidation requests to respect CloudFront limits
-4. **Error Handling**: Invalidation failures are logged but don't stop the sync process
-5. **Dry Run Support**: Use `--dry-run` to see what would be invalidated without making actual API calls
+4. **Rate Limit Handling**: Automatic retry with exponential backoff when CloudFront rate limits are hit
+5. **Error Handling**: Invalidation failures are logged but don't stop the sync process
+6. **Dry Run Support**: Use `--dry-run` to see what would be invalidated without making actual API calls
 
 ### IAM Permissions
 
