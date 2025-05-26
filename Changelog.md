@@ -2,6 +2,56 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v4.6.0
+
+* Add comprehensive CloudFront invalidation support with smart path tracking
+* Add CloudFront configuration options and command line switches
+* Add batch processing for CloudFront invalidations to respect API limits
+* Add path normalization and deduplication for efficient invalidations
+* Add dry-run support for CloudFront invalidations
+* Add wait functionality for CI/CD pipeline integration
+* Update README with CloudFront documentation and best practices
+
+## v4.5.0
+
+* Migrate from Fog gem to native AWS SDK S3 client
+* Remove numerous transitive dependencies by dropping Fog
+* Fix path handling inconsistencies with leading slashes
+* Improve resource handling for AWS SDK v3 compatibility
+* Add Ruby 3.2 compatibility fixes
+* Fix build behavior to not auto-build unless explicitly requested
+* Optimize resource processing for better performance
+* Update nokogiri dependency for security
+* Enhance test coverage and mocking
+
+## v4.4.0
+
+* Add support for newer Ruby versions (3.0+)
+* Update dependencies for security and compatibility
+* Fix deprecation warnings with newer Ruby versions
+* Improve error handling and logging
+
+## v4.3.0
+
+* Enhanced S3 client configuration options
+* Improved AWS credential handling
+* Better support for custom S3 endpoints
+* Performance optimizations for large sites
+
+## v4.2.0
+
+* Add support for S3 transfer acceleration
+* Improve concurrent upload handling
+* Enhanced progress reporting
+* Better error messages and debugging
+
+## v4.1.0
+
+* Add support for custom content types
+* Improve gzip handling and encoding detection
+* Enhanced caching policy management
+* Better support for redirects and metadata
+
 ## v4.0.1
 
 * Fix order of manipulator chain so that S3 Sync is always the last action
