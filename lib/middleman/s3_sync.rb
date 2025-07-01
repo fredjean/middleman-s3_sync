@@ -92,7 +92,7 @@ module Middleman
       end
 
       def content_types
-        @content_types || {}
+        s3_sync_options.content_types
       end
 
       protected
