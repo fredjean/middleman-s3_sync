@@ -107,10 +107,10 @@ module Middleman
 
       def update_bucket_website
         opts = {}
-        opts[:IndexDocument] = s3_sync_options.index_document if s3_sync_options.index_document
-        opts[:ErrorDocument] = s3_sync_options.error_document if s3_sync_options.error_document
+        opts[:index_document] = { "suffix": s3_sync_options.index_document } if s3_sync_options.index_document
+        opts[:error_document] = { "key": s3_sync_options.error_document } if s3_sync_options.error_document
 
-        if opts[:ErrorDocument] && !opts[:IndexDocument]
+        if opts[:error_document] && !opts[:index_document]
           raise 'S3 requires `index_document` if `error_document` is specified'
         end
 
