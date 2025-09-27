@@ -3,8 +3,6 @@ module Middleman
     class Resource
       attr_accessor :path, :resource, :partial_s3_resource, :full_s3_resource, :content_type, :gzipped, :options
 
-      CONTENT_MD5_KEY = 'x-amz-meta-content-md5'
-      REDIRECT_KEY = 'x-amz-website-redirect-location'
 
       include Status
 
@@ -59,7 +57,7 @@ module Middleman
           :key => key,
           :acl => options.acl,
           :content_type => content_type,
-          CONTENT_MD5_KEY => local_content_md5
+          'content-md5' => local_content_md5
         }
 
         if caching_policy
@@ -80,7 +78,7 @@ module Middleman
         end
 
         if redirect?
-          attributes[REDIRECT_KEY] = redirect_url
+          attributes['website-redirect-location'] = redirect_url
         end
 
         attributes
@@ -125,7 +123,7 @@ module Middleman
 
         # Add metadata if present
         if local_content_md5
-          upload_options[:metadata] = { CONTENT_MD5_KEY => local_content_md5 }
+          upload_options[:metadata] = { 'content-md5' => local_content_md5 }
         end
 
         # Add redirect if present
@@ -292,7 +290,7 @@ module Middleman
 
       def remote_content_md5
         if full_s3_resource && full_s3_resource.metadata
-          full_s3_resource.metadata[CONTENT_MD5_KEY]
+          full_s3_resource.metadata['content-md5']
         end
       end
 
