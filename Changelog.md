@@ -2,6 +2,15 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v4.6.2
+
+* Fix AWS SDK parameter format issues from Fog migration
+* Fix website configuration parameters to use symbol keys instead of strings
+* Fix S3 object metadata parameter format to use correct key suffixes
+* Remove obsolete Fog-style constants (CONTENT_MD5_KEY, REDIRECT_KEY)
+* Add comprehensive test suite for AWS SDK parameter validation (18 new tests)
+* Improve compatibility with AWS SDK v3 to prevent API errors
+
 ## v4.6.1
 
 * Add CloudFront rate limit handling with exponential backoff retry logic
