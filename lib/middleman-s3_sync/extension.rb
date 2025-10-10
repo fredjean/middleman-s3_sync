@@ -77,7 +77,15 @@ module Middleman
     end
 
     def s3_sync_options
-      options
+      # Convert Middleman's ConfigurationManager to our custom Options object
+      @s3_sync_options_obj ||= begin
+        opts = ::Middleman::S3Sync::Options.new
+        # Copy all option values from Middleman's ConfigurationManager to our Options
+        options.all_settings.each do |key, _|
+          opts.send("#{key}=", options[key]) if opts.respond_to?("#{key}=")
+        end
+        opts
+      end
     end
 
     # Read config options from an IO stream and set them on `self`. Defaults
