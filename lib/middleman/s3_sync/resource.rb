@@ -55,10 +55,11 @@ module Middleman
       def to_h
         attributes = {
           :key => key,
-          :acl => options.acl,
           :content_type => content_type,
           'content-md5' => local_content_md5
         }
+        # Only add ACL if explicitly set (not for buckets with ACLs disabled)
+        attributes[:acl] = options.acl if options.acl && !options.acl.empty?
 
         if caching_policy
           attributes[:cache_control] = caching_policy.cache_control
@@ -117,9 +118,10 @@ module Middleman
         object = bucket.object(remote_path.sub(/^\//, ''))
         upload_options = {
           body: local_content,
-          content_type: content_type,
-          acl: options.acl
+          content_type: content_type
         }
+        # Only add ACL if explicitly set (not for buckets with ACLs disabled)
+        upload_options[:acl] = options.acl if options.acl && !options.acl.empty?
 
         # Add metadata if present
         if local_content_md5
