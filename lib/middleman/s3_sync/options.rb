@@ -10,10 +10,10 @@ module Middleman
         :region,
         :aws_access_key_id,
         :aws_secret_access_key,
+        :aws_session_token,
         :after_build,
         :delete,
         :encryption,
-        :existing_remote_file,
         :build_dir,
         :force,
         :prefer_gzip,
@@ -25,7 +25,14 @@ module Middleman
         :content_types,
         :ignore_paths,
         :index_document,
-        :error_document
+        :error_document,
+        :cloudfront_distribution_id,
+        :cloudfront_invalidate,
+        :cloudfront_invalidate_all,
+        :cloudfront_invalidation_batch_size,
+        :cloudfront_invalidation_max_retries,
+        :cloudfront_invalidation_batch_delay,
+        :cloudfront_wait
       ]
       attr_accessor *OPTIONS
 
