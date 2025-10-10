@@ -58,8 +58,8 @@ module Middleman
           :content_type => content_type,
           'content-md5' => local_content_md5
         }
-        # Only add ACL if explicitly set (not for buckets with ACLs disabled)
-        attributes[:acl] = options.acl if options.acl && !options.acl.empty?
+        # Only add ACL if enabled (not for buckets with ACLs disabled)
+        attributes[:acl] = options.acl if options.acl_enabled?
 
         if caching_policy
           attributes[:cache_control] = caching_policy.cache_control
@@ -120,8 +120,8 @@ module Middleman
           body: local_content,
           content_type: content_type
         }
-        # Only add ACL if explicitly set (not for buckets with ACLs disabled)
-        upload_options[:acl] = options.acl if options.acl && !options.acl.empty?
+        # Only add ACL if enabled (not for buckets with ACLs disabled)
+        upload_options[:acl] = options.acl if options.acl_enabled?
 
         # Add metadata if present
         if local_content_md5

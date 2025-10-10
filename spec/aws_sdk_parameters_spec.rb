@@ -152,6 +152,38 @@ describe 'AWS SDK Parameter Validation' do
       resource.upload!
     end
 
+    context 'when ACL is set to empty string (for buckets with ACLs disabled)' do
+      before do
+        options.acl = ''
+      end
+
+      it 'does not include acl parameter in upload' do
+        expect(s3_object).to receive(:put) do |upload_options|
+          expect(upload_options).not_to have_key(:acl)
+          expect(upload_options[:body]).to eq('test content')
+          expect(upload_options[:content_type]).to eq('text/html')
+        end
+
+        resource.upload!
+      end
+    end
+
+    context 'when ACL is set to nil (for buckets with ACLs disabled)' do
+      before do
+        options.acl = nil
+      end
+
+      it 'does not include acl parameter in upload' do
+        expect(s3_object).to receive(:put) do |upload_options|
+          expect(upload_options).not_to have_key(:acl)
+          expect(upload_options[:body]).to eq('test content')
+          expect(upload_options[:content_type]).to eq('text/html')
+        end
+
+        resource.upload!
+      end
+    end
+
     context 'when gzip is enabled' do
       before do
         options.prefer_gzip = true
@@ -304,6 +336,34 @@ describe 'AWS SDK Parameter Validation' do
       expect(attributes[:content_type]).to eq('text/html')
       expect(attributes['content-md5']).to be_a(String)
       expect(attributes).not_to have_key('x-amz-meta-content-md5')
+    end
+
+    context 'when ACL is set to empty string' do
+      before do
+        options.acl = ''
+      end
+
+      it 'does not include acl in attributes' do
+        attributes = resource.to_h
+
+        expect(attributes).not_to have_key(:acl)
+        expect(attributes[:key]).to eq('test/file.html')
+        expect(attributes[:content_type]).to eq('text/html')
+      end
+    end
+
+    context 'when ACL is set to nil' do
+      before do
+        options.acl = nil
+      end
+
+      it 'does not include acl in attributes' do
+        attributes = resource.to_h
+
+        expect(attributes).not_to have_key(:acl)
+        expect(attributes[:key]).to eq('test/file.html')
+        expect(attributes[:content_type]).to eq('text/html')
+      end
     end
 
     context 'when resource has a redirect' do

@@ -30,7 +30,23 @@ module Middleman
       attr_accessor *OPTIONS
 
       def acl
-        @acl || 'public-read'
+        # If @acl is explicitly set to empty string or false, return nil (for buckets with ACLs disabled)
+        # If @acl is nil and was never set, return default 'public-read'
+        # Otherwise return the set value
+        return nil if @acl == '' || @acl == false
+        @acl_explicitly_set ? @acl : (@acl || 'public-read')
+      end
+
+      def acl=(value)
+        @acl_explicitly_set = true
+        @acl = value
+      end
+
+      def acl_enabled?
+        # ACLs are disabled if explicitly set to nil, empty string, or false
+        return false if @acl_explicitly_set && (@acl.nil? || @acl == '' || @acl == false)
+        # Otherwise ACLs are enabled (using default or explicit value)
+        true
       end
 
       def aws_access_key_id=(aws_access_key_id)
