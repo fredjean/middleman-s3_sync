@@ -77,7 +77,28 @@ module Middleman
     end
 
     def s3_sync_options
-      options
+      self
+    end
+
+    def acl_enabled?
+      # ACLs are disabled if acl is explicitly set to nil, empty string, or false
+      acl_value = options.acl
+      return false if acl_value.nil? || acl_value == '' || acl_value == false
+      # Otherwise ACLs are enabled (using default or explicit value)
+      true
+    end
+
+    # Delegate option readers to the options object
+    def method_missing(method, *args, &block)
+      if options.respond_to?(method)
+        options.send(method, *args, &block)
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method, include_private = false)
+      options.respond_to?(method) || super
     end
 
     # Read config options from an IO stream and set them on `self`. Defaults
