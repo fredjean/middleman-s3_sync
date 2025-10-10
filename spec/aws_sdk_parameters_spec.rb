@@ -184,6 +184,56 @@ describe 'AWS SDK Parameter Validation' do
       end
     end
 
+    context 'when bucket does not support ACLs (auto-detection)' do
+      before do
+        # ACL is enabled by default
+        expect(options.acl).to eq('public-read')
+      end
+
+      it 'automatically retries without ACL when AccessControlListNotSupported error occurs' do
+        call_count = 0
+        expect(s3_object).to receive(:put).twice do |upload_options|
+          call_count += 1
+          if call_count == 1
+            # First call should include ACL
+            expect(upload_options[:acl]).to eq('public-read')
+            raise Aws::S3::Errors::AccessControlListNotSupported.new(nil, 'The bucket does not allow ACLs')
+          else
+            # Second call should not include ACL
+            expect(upload_options).not_to have_key(:acl)
+            expect(upload_options[:body]).to eq('test content')
+            expect(upload_options[:content_type]).to eq('text/html')
+          end
+        end
+
+        # Should automatically disable ACLs after the error
+        resource.upload!
+        expect(options.acl_enabled?).to be false
+      end
+
+      it 'permanently disables ACLs after detecting bucket does not support them' do
+        call_count = 0
+        allow(s3_object).to receive(:put) do |upload_options|
+          call_count += 1
+          if call_count == 1
+            expect(upload_options[:acl]).to eq('public-read')
+            raise Aws::S3::Errors::AccessControlListNotSupported.new(nil, 'The bucket does not allow ACLs')
+          else
+            # Second call should succeed without ACL
+            expect(upload_options).not_to have_key(:acl)
+            true
+          end
+        end
+        
+        resource.upload!
+        expect(options.acl_enabled?).to be false
+        
+        # Verify ACLs stay disabled for future uploads
+        resource.upload!
+        expect(call_count).to eq(3) # First attempt, retry, and third upload
+      end
+    end
+
     context 'when gzip is enabled' do
       before do
         options.prefer_gzip = true

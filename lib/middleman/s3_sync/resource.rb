@@ -116,41 +116,22 @@ module Middleman
 
       def upload!
         object = bucket.object(remote_path.sub(/^\//, ''))
-        upload_options = {
-          body: local_content,
-          content_type: content_type
-        }
-        # Only add ACL if enabled (not for buckets with ACLs disabled)
-        upload_options[:acl] = options.acl if options.acl_enabled?
+        upload_options = build_upload_options
 
-        # Add metadata if present
-        if local_content_md5
-          upload_options[:metadata] = { 'content-md5' => local_content_md5 }
+        begin
+          object.put(upload_options)
+        rescue Aws::S3::Errors::AccessControlListNotSupported => e
+          # Bucket has ACLs disabled - retry without ACL
+          if upload_options.key?(:acl)
+            say_status "#{ANSI.yellow{"Note"}} Bucket does not support ACLs, retrying without ACL parameter"
+            # Automatically disable ACLs for this bucket going forward
+            options.acl = ''
+            upload_options.delete(:acl)
+            retry
+          else
+            raise e
+          end
         end
-
-        # Add redirect if present
-        upload_options[:website_redirect_location] = redirect_url if redirect?
-
-        # Add content encoding if present
-        upload_options[:content_encoding] = "gzip" if options.prefer_gzip && gzipped
-
-        # Add cache control and expires if present
-        if caching_policy
-          upload_options[:cache_control] = caching_policy.cache_control
-          upload_options[:expires] = caching_policy.expires
-        end
-
-        # Add storage class if needed
-        if options.reduced_redundancy_storage
-          upload_options[:storage_class] = 'REDUCED_REDUNDANCY'
-        end
-
-        # Add encryption if needed
-        if options.encryption
-          upload_options[:server_side_encryption] = 'AES256'
-        end
-
-        object.put(upload_options)
       end
 
       def ignore!
@@ -332,6 +313,45 @@ module Middleman
       end
 
       protected
+      
+      def build_upload_options
+        upload_options = {
+          body: local_content,
+          content_type: content_type
+        }
+        # Only add ACL if enabled (not for buckets with ACLs disabled)
+        upload_options[:acl] = options.acl if options.acl_enabled?
+
+        # Add metadata if present
+        if local_content_md5
+          upload_options[:metadata] = { 'content-md5' => local_content_md5 }
+        end
+
+        # Add redirect if present
+        upload_options[:website_redirect_location] = redirect_url if redirect?
+
+        # Add content encoding if present
+        upload_options[:content_encoding] = "gzip" if options.prefer_gzip && gzipped
+
+        # Add cache control and expires if present
+        if caching_policy
+          upload_options[:cache_control] = caching_policy.cache_control
+          upload_options[:expires] = caching_policy.expires
+        end
+
+        # Add storage class if needed
+        if options.reduced_redundancy_storage
+          upload_options[:storage_class] = 'REDUCED_REDUNDANCY'
+        end
+
+        # Add encryption if needed
+        if options.encryption
+          upload_options[:server_side_encryption] = 'AES256'
+        end
+
+        upload_options
+      end
+
       def bucket
         Middleman::S3Sync.bucket
       end

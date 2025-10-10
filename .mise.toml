@@ -1,0 +1,17 @@
+[tools]
+ruby = "3.4.2"
+
+[env]
+_.file = ".env"
+_.path = ["./bin"]
+
+[tasks.binstubs]
+description = "Generate binstubs for all gems"
+run = "bundle binstubs --all"
+
+[tasks.setup]
+description = "Setup project dependencies and binstubs"
+run = [
+  "bundle install",
+  "mise run binstubs"
+]
