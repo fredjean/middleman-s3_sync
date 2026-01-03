@@ -20,15 +20,13 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'middleman-core'
   gem.add_runtime_dependency 'middleman-cli'
-  gem.add_runtime_dependency 'unf'
-  gem.add_runtime_dependency 'aws-sdk-s3'
+  gem.add_runtime_dependency 'aws-sdk-s3', '>= 1.187.0'
   gem.add_runtime_dependency 'aws-sdk-cloudfront'
   gem.add_runtime_dependency 'map'
   gem.add_runtime_dependency 'parallel'
   gem.add_runtime_dependency 'ruby-progressbar'
   gem.add_runtime_dependency 'ansi', '~> 1.5.0'
   gem.add_runtime_dependency 'mime-types', '~> 3.1'
-  gem.add_runtime_dependency 'base64'
   gem.add_runtime_dependency 'nokogiri', '>= 1.18.4'
 
   gem.add_development_dependency 'rake'
