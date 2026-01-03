@@ -2,6 +2,9 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v4.6.3
+* Restrict incompatible map 8.x installation
+
 ## v4.6.2
 
 * Fix AWS SDK parameter format issues from Fog migration
