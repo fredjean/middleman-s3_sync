@@ -100,6 +100,10 @@ The gem determines what to do with each file by comparing:
 - **`config.rb`**: Middleman configuration with `activate :s3_sync` block
 - **Environment Variables**: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_BUCKET, etc.
 
+## Development Rules
+
+**All changes must be accompanied with unit tests.** This is non-negotiable for maintaining code quality and preventing regressions.
+
 ## Common Development Patterns
 
 When adding new functionality:
