@@ -1,6 +1,5 @@
 require 'middleman-core'
 require 'middleman/s3_sync'
-require 'map'
 
 module Middleman
   class S3SyncExtension < ::Middleman::Extension

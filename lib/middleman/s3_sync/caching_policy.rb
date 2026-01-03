@@ -1,4 +1,4 @@
-require 'map'
+require 'middleman/s3_sync/indifferent_hash'
 
 module Middleman
   module S3Sync
@@ -17,7 +17,7 @@ module Middleman
       end
 
       def caching_policies
-        @caching_policies ||= Map.new
+        @caching_policies ||= IndifferentHash.new
       end
     end
 
@@ -25,7 +25,7 @@ module Middleman
       attr_accessor :policies
 
       def initialize(options = {})
-        @policies = Map.from_hash(options)
+        @policies = IndifferentHash.from_hash(options)
       end
 
       def cache_control
