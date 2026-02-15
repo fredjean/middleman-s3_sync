@@ -2,6 +2,18 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v4.6.5
+- Performance and stability improvements
+  - Thread-safe invalidation path tracking (use Set + mutex) when running in parallel
+  - Cache CloudFront client (with reset hook for tests)
+  - Single-pass resource categorization (reduce multiple iterations over resources)
+  - Batch S3 deletes via delete_objects (up to 1000 keys/request)
+  - Stream file uploads to reduce memory; compute MD5s in a single read when possible
+  - Optimize CloudFront path deduplication to O(n × path_depth)
+  - CLI/extension: support option writers (e.g., verbose=, dry_run=) to fix NoMethodError
+- Tests: add coverage for CloudFront, batch delete, and streaming uploads
+- No breaking changes; default behavior preserved
+
 ## v4.6.4
 * Remove map gem dependency and replace with native Ruby implementation
 * Add IndifferentHash class to provide string/symbol indifferent access without external dependencies
