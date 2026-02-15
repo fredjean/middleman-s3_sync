@@ -36,7 +36,7 @@ describe 'S3Sync CloudFront Integration' do
   describe 'CloudFront invalidation integration' do
     it 'calls CloudFront invalidation after sync operations' do
       # Reset invalidation paths for this test
-      Middleman::S3Sync.instance_variable_set(:@invalidation_paths, [])
+      Middleman::S3Sync.instance_variable_set(:@invalidation_paths, Set.new)
       
       expect(Middleman::S3Sync::CloudFront).to receive(:invalidate).with(
         [], # Initially empty, gets populated during resource operations
@@ -104,7 +104,7 @@ describe 'S3Sync CloudFront Integration' do
   describe 'path tracking during resource operations' do
     before do
       # Reset invalidation paths before each path tracking test
-      Middleman::S3Sync.instance_variable_set(:@invalidation_paths, [])
+      Middleman::S3Sync.instance_variable_set(:@invalidation_paths, Set.new)
     end
 
     it 'adds paths to invalidation list when resources are processed' do
@@ -126,7 +126,73 @@ describe 'S3Sync CloudFront Integration' do
       Middleman::S3Sync.add_invalidation_path('/same/path.html')
       Middleman::S3Sync.add_invalidation_path('/same/path.html')
       
-      expect(Middleman::S3Sync.invalidation_paths.count('/same/path.html')).to eq(1)
+      # Set automatically handles uniqueness - verify it contains exactly one occurrence
+      expect(Middleman::S3Sync.invalidation_paths.to_a.count('/same/path.html')).to eq(1)
+    end
+  end
+
+  describe 'batch delete operations' do
+    let(:bucket) { double('bucket') }
+    let(:resource1) { double('resource1', path: 'file1.html', remote_path: 'file1.html') }
+    let(:resource2) { double('resource2', path: 'file2.html', remote_path: 'file2.html') }
+    let(:resource3) { double('resource3', path: 'file3.html', remote_path: 'file3.html') }
+
+    before do
+      # Remove the stub for delete_resources so we test the actual implementation
+      allow(Middleman::S3Sync).to receive(:delete_resources).and_call_original
+      allow(Middleman::S3Sync).to receive(:say_status)
+      allow(Middleman::S3Sync).to receive(:bucket).and_return(bucket)
+      allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(s3_sync_options)
+      Middleman::S3Sync.instance_variable_set(:@invalidation_paths, Set.new)
+      Middleman::S3Sync.instance_variable_set(:@categorized_resources, nil)
+    end
+
+    it 'uses batch delete_objects API instead of individual deletes' do
+      allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([resource1, resource2, resource3])
+      
+      expect(bucket).to receive(:delete_objects).with(
+        delete: {
+          objects: [
+            { key: 'file1.html' },
+            { key: 'file2.html' },
+            { key: 'file3.html' }
+          ]
+        }
+      )
+
+      Middleman::S3Sync.send(:delete_resources)
+    end
+
+    it 'adds invalidation paths for all deleted resources' do
+      allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([resource1, resource2])
+      allow(bucket).to receive(:delete_objects)
+
+      Middleman::S3Sync.send(:delete_resources)
+
+      expect(Middleman::S3Sync.invalidation_paths).to include('/file1.html')
+      expect(Middleman::S3Sync.invalidation_paths).to include('/file2.html')
+    end
+
+    it 'does not call delete_objects during dry run' do
+      dry_run_options = double(
+        dry_run: true,
+        delete: true,
+        bucket: 'test-bucket'
+      )
+      allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(dry_run_options)
+      allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([resource1])
+
+      expect(bucket).not_to receive(:delete_objects)
+
+      Middleman::S3Sync.send(:delete_resources)
+    end
+
+    it 'does nothing when there are no files to delete' do
+      allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([])
+
+      expect(bucket).not_to receive(:delete_objects)
+
+      Middleman::S3Sync.send(:delete_resources)
     end
   end
 end

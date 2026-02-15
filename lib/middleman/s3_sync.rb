@@ -11,6 +11,7 @@ require 'middleman/redirect'
 require 'parallel'
 require 'ruby-progressbar'
 require 'thread'
+require 'set'
 
 module Middleman
   module S3Sync
@@ -20,6 +21,7 @@ module Middleman
 
       @@bucket_lock = Mutex.new
       @@bucket_files_lock = Mutex.new
+      @@invalidation_paths_lock = Mutex.new
 
       attr_accessor :s3_sync_options
       attr_accessor :mm_resources
@@ -28,11 +30,12 @@ module Middleman
       THREADS_COUNT = 8
       
       # Track paths that were changed during sync for CloudFront invalidation
-      attr_accessor :invalidation_paths
+      # Using a Set for O(1) lookups
+      attr_reader :invalidation_paths
 
       def sync()
         @app ||= ::Middleman::Application.new
-        @invalidation_paths = []
+        @invalidation_paths = Set.new
 
         say_status "Let's see if there's work to be done..."
         unless work_to_be_done?
@@ -58,7 +61,7 @@ module Middleman
         
         # Invalidate CloudFront cache if requested
         if s3_sync_options.cloudfront_invalidate
-          CloudFront.invalidate(@invalidation_paths, s3_sync_options)
+          CloudFront.invalidate(@invalidation_paths.to_a, s3_sync_options)
         end
       end
 
@@ -77,10 +80,12 @@ module Middleman
       end
       
       def add_invalidation_path(path)
-        @invalidation_paths ||= []
-        # Normalize path for CloudFront (ensure it starts with /)
-        normalized_path = path.start_with?('/') ? path : "/#{path}"
-        @invalidation_paths << normalized_path unless @invalidation_paths.include?(normalized_path)
+        @@invalidation_paths_lock.synchronize do
+          @invalidation_paths ||= Set.new
+          # Normalize path for CloudFront (ensure it starts with /)
+          normalized_path = path.start_with?('/') ? path : "/#{path}"
+          @invalidation_paths.add(normalized_path)
+        end
       end
 
       def remote_only_paths
@@ -204,9 +209,21 @@ module Middleman
       end
 
       def delete_resources
-        Parallel.map(files_to_delete, in_threads: THREADS_COUNT) do |resource|
-          resource.destroy!
+        resources = files_to_delete
+        return if resources.empty?
+
+        # Print status messages for all resources being deleted
+        resources.each do |resource|
+          say_status "#{ANSI.red{"Deleting"}} #{resource.remote_path}"
           add_invalidation_path(resource.path)
+        end
+
+        # Batch delete using S3's delete_objects API (up to 1000 objects per request)
+        unless s3_sync_options.dry_run
+          resources.each_slice(1000) do |batch|
+            objects_to_delete = batch.map { |r| { key: r.remote_path.sub(/^\//, '') } }
+            bucket.delete_objects(delete: { objects: objects_to_delete })
+          end
         end
       end
 
@@ -224,24 +241,41 @@ module Middleman
         !(files_to_create.empty? && files_to_update.empty? && files_to_delete.empty?)
       end
 
+      # Single-pass categorization of resources by status
+      # Avoids multiple iterations over s3_sync_resources
+      def categorized_resources
+        @categorized_resources ||= begin
+          result = { create: [], update: [], delete: [], ignore: [] }
+          s3_sync_resources.values.each do |resource|
+            case
+            when resource.to_create? then result[:create] << resource
+            when resource.to_update? then result[:update] << resource
+            when resource.to_delete? then result[:delete] << resource
+            when resource.to_ignore? then result[:ignore] << resource
+            end
+          end
+          result
+        end
+      end
+
       def files_to_delete
         if s3_sync_options.delete
-          s3_sync_resources.values.select { |r| r.to_delete? }
+          categorized_resources[:delete]
         else
           []
         end
       end
 
       def files_to_create
-        s3_sync_resources.values.select { |r| r.to_create? }
+        categorized_resources[:create]
       end
 
       def files_to_update
-        s3_sync_resources.values.select { |r| r.to_update? }
+        categorized_resources[:update]
       end
 
       def files_to_ignore
-        s3_sync_resources.values.select { |r| r.to_ignore? }
+        categorized_resources[:ignore]
       end
 
       def build_dir

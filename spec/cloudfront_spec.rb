@@ -27,6 +27,8 @@ describe Middleman::S3Sync::CloudFront do
 
   before do
     allow(described_class).to receive(:say_status)
+    # Reset cached CloudFront client between tests to prevent double leakage
+    described_class.send(:reset_cloudfront_client!)
   end
 
   describe '.invalidate' do

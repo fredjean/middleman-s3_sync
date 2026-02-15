@@ -1,5 +1,6 @@
 require 'aws-sdk-cloudfront'
 require 'securerandom'
+require 'set'
 
 module Middleman
   module S3Sync
@@ -101,23 +102,40 @@ module Middleman
           # Sort paths to ensure wildcards come before specific files
           sorted_paths = paths.sort
           result = []
+          # Use a Set for O(1) lookup of wildcard prefixes
+          wildcard_prefixes = Set.new
           
           sorted_paths.each do |path|
-            # Check if this path is already covered by a wildcard we've added
-            is_redundant = result.any? do |existing_path|
-              if existing_path.end_with?('/*')
-                # Check if current path is under this wildcard
-                wildcard_prefix = existing_path[0..-3] # Remove /*
-                path.start_with?(wildcard_prefix + '/')
-              else
-                false
+            # Check if this path is covered by any existing wildcard prefix
+            # by checking all parent directories of this path
+            is_redundant = path_covered_by_wildcard?(path, wildcard_prefixes)
+            
+            unless is_redundant
+              result << path
+              # If this is a wildcard path, add its prefix for future lookups
+              if path.end_with?('/*')
+                wildcard_prefixes.add(path[0..-3]) # Remove /*
               end
             end
-            
-            result << path unless is_redundant
           end
           
           result
+        end
+
+        # Check if a path is covered by any wildcard prefix in O(path_depth) time
+        def path_covered_by_wildcard?(path, wildcard_prefixes)
+          return false if wildcard_prefixes.empty?
+          
+          # Check each parent directory of the path
+          segments = path.split('/')
+          current_path = ''
+          
+          segments[0..-2].each do |segment|  # Exclude the last segment
+            current_path = current_path.empty? ? segment : "#{current_path}/#{segment}"
+            return true if wildcard_prefixes.include?(current_path)
+          end
+          
+          false
         end
 
         def create_invalidation_with_retry(paths, options)
@@ -161,24 +179,30 @@ module Middleman
         end
 
         def cloudfront_client(options)
-          client_options = {
-            region: 'us-east-1' # CloudFront is always in us-east-1
-          }
+          @cloudfront_client ||= begin
+            client_options = {
+              region: 'us-east-1' # CloudFront is always in us-east-1
+            }
 
-          # Use the same credentials as S3 if available
-          if options.aws_access_key_id && options.aws_secret_access_key
-            client_options.merge!({
-              access_key_id: options.aws_access_key_id,
-              secret_access_key: options.aws_secret_access_key
-            })
+            # Use the same credentials as S3 if available
+            if options.aws_access_key_id && options.aws_secret_access_key
+              client_options.merge!({
+                access_key_id: options.aws_access_key_id,
+                secret_access_key: options.aws_secret_access_key
+              })
 
-            # If using an assumed role
-            client_options.merge!({
-              session_token: options.aws_session_token
-            }) if options.aws_session_token
+              # If using an assumed role
+              client_options.merge!({
+                session_token: options.aws_session_token
+              }) if options.aws_session_token
+            end
+
+            Aws::CloudFront::Client.new(client_options)
           end
+        end
 
-          Aws::CloudFront::Client.new(client_options)
+        def reset_cloudfront_client!
+          @cloudfront_client = nil
         end
 
         def wait_for_invalidations(invalidation_ids, options)

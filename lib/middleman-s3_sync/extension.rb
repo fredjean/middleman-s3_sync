@@ -87,16 +87,30 @@ module Middleman
       true
     end
 
-    # Delegate option readers to the options object
+    # Delegate option readers and writers to the options object
     def method_missing(method, *args, &block)
-      if options.respond_to?(method)
-        options.send(method, *args, &block)
-      else
-        super
+      method_str = method.to_s
+      
+      # Handle setter methods (e.g., verbose=)
+      if method_str.end_with?('=')
+        option_name = method_str.chomp('=').to_sym
+        if options.respond_to?(option_name)
+          options[option_name] = args.first
+          return args.first
+        end
+      elsif options.respond_to?(method)
+        return options.send(method, *args, &block)
       end
+      
+      super
     end
 
     def respond_to_missing?(method, include_private = false)
+      method_str = method.to_s
+      if method_str.end_with?('=')
+        option_name = method_str.chomp('=').to_sym
+        return options.respond_to?(option_name)
+      end
       options.respond_to?(method) || super
     end
 

@@ -116,20 +116,25 @@ module Middleman
 
       def upload!
         object = bucket.object(remote_path.sub(/^\//, ''))
-        upload_options = build_upload_options
-
-        begin
-          object.put(upload_options)
-        rescue Aws::S3::Errors::AccessControlListNotSupported => e
-          # Bucket has ACLs disabled - retry without ACL
-          if upload_options.key?(:acl)
-            say_status "#{ANSI.yellow{"Note"}} Bucket does not support ACLs, retrying without ACL parameter"
-            # Automatically disable ACLs for this bucket going forward
-            options.acl = ''
-            upload_options.delete(:acl)
-            retry
-          else
-            raise e
+        
+        # Use streaming upload for memory efficiency with large files
+        File.open(local_path, 'rb') do |file|
+          upload_options = build_upload_options_for_stream(file)
+          
+          begin
+            object.put(upload_options)
+          rescue Aws::S3::Errors::AccessControlListNotSupported => e
+            # Bucket has ACLs disabled - retry without ACL
+            if upload_options.key?(:acl)
+              say_status "#{ANSI.yellow{"Note"}} Bucket does not support ACLs, retrying without ACL parameter"
+              # Automatically disable ACLs for this bucket going forward
+              options.acl = ''
+              upload_options.delete(:acl)
+              file.rewind  # Reset file position for retry
+              retry
+            else
+              raise e
+            end
           end
         end
       end
@@ -278,17 +283,39 @@ module Middleman
       end
 
       def local_object_md5
-        @local_object_md5 ||= Digest::MD5.hexdigest(File.read(local_path))
+        @local_object_md5 ||= begin
+          # When not gzipped, compute both MD5s in single read to avoid redundant I/O
+          if !gzipped && local_path == original_path
+            compute_md5s_single_read
+            @local_object_md5
+          else
+            Digest::MD5.hexdigest(File.read(local_path))
+          end
+        end
       end
 
       def local_content_md5
         @local_content_md5 ||= begin
-          if File.exist?(original_path)
+          # When not gzipped, compute both MD5s in single read to avoid redundant I/O
+          if !gzipped && local_path == original_path
+            compute_md5s_single_read
+            @local_content_md5
+          elsif File.exist?(original_path)
             Digest::MD5.hexdigest(File.read(original_path))
           else
             nil
           end
         end
+      end
+
+      # Compute both MD5s from a single file read when they're the same file
+      def compute_md5s_single_read
+        return if @md5s_computed
+        content = File.read(local_path)
+        md5 = Digest::MD5.hexdigest(content)
+        @local_object_md5 = md5
+        @local_content_md5 = md5
+        @md5s_computed = true
       end
 
       def original_path
@@ -314,9 +341,10 @@ module Middleman
 
       protected
       
-      def build_upload_options
+      # Build upload options with a file stream as the body
+      def build_upload_options_for_stream(file_stream)
         upload_options = {
-          body: local_content,
+          body: file_stream,
           content_type: content_type
         }
         # Only add ACL if enabled (not for buckets with ACLs disabled)
