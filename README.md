@@ -19,6 +19,22 @@ that are no longer needed.
 * Use middleman-s3_sync version 4.x for Middleman 4.x
 * Use middleman-s3_sync version 3.x for Middleman 3.x
 
+## What's New in 4.6.5
+
+**Performance & Efficiency**
+- Batch deletes using S3 `delete_objects` (up to 1,000 keys per request)
+- Streaming uploads to reduce memory usage on large files
+- Single-pass MD5 computation avoids redundant file reads
+- Single-pass resource categorization (create/update/delete)
+- Faster redundant-path pruning for CloudFront invalidations
+
+**Reliability**
+- Thread-safe CloudFront invalidation path tracking (mutex-protected Set)
+- Cached CloudFront client to reduce re-instantiation overhead
+
+**Developer Experience**
+- Extension now properly delegates option writers (`verbose=`, `dry_run=`, etc.)
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -513,6 +529,16 @@ The valid values are:
 The full values and their semantics are [documented on AWS's
 documentation
 site](http://docs.aws.amazon.com/AmazonS3/latest/dev/ACLOverview.html#CannedACL).
+
+##### Buckets with ACLs Disabled
+
+If your bucket uses "Object Ownership: Bucket owner enforced" (ACLs disabled), set:
+
+```ruby
+s3_sync.acl = ''   # or: s3_sync.acl = nil
+```
+
+The gem will also auto-detect buckets that reject ACL headers and transparently retry uploads without the `:acl` parameter.
 
 #### Encryption
 
