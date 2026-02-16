@@ -28,6 +28,7 @@ module Middleman
     option :error_document, nil, 'S3 custom error document path'
     option :content_types, {}, 'Custom content types'
     option :ignore_paths, [], 'Paths that should be ignored during sync, strings or regex are allowed'
+    option :scan_build_dir, false, 'Scan build directory for files not in sitemap (e.g., after_build files)'
     option :cloudfront_distribution_id, nil, 'CloudFront distribution ID for invalidation'
     option :cloudfront_invalidate, false, 'Whether to invalidate CloudFront cache after sync'
     option :cloudfront_invalidate_all, false, 'Whether to invalidate all paths (/*) or only changed files'

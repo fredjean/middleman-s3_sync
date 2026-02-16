@@ -302,6 +302,30 @@ describe Middleman::S3Sync::Resource do
     end
   end
 
+  context 'a resource with explicit path (orphan file)' do
+    subject(:resource) { Middleman::S3Sync::Resource.new(nil, nil, path: 'orphan/file.webp') }
+
+    before do
+      allow(File).to receive(:exist?).with('build/orphan/file.webp').and_return(true)
+      allow(File).to receive(:exist?).with('build/orphan/file.webp.gz').and_return(false)
+      allow(File).to receive(:read).with('build/orphan/file.webp').and_return('content')
+      allow(File).to receive(:directory?).with('build/orphan/file.webp').and_return(false)
+      
+      # Mock the bucket to return NotFound for head request (file doesn't exist on S3)
+      mock_object = instance_double(Aws::S3::Object)
+      allow(mock_object).to receive(:head).and_raise(Aws::S3::Errors::NotFound.new(nil, 'Not Found'))
+      allow(bucket).to receive(:object).with('orphan/file.webp').and_return(mock_object)
+    end
+
+    its(:path) { is_expected.to eq 'orphan/file.webp' }
+    its(:local_path) { is_expected.to eq 'build/orphan/file.webp' }
+    its(:status) { is_expected.to eq :new }
+
+    it 'detects content type via mime-types' do
+      expect(resource.content_type).to eq 'image/webp'
+    end
+  end
+
   context 'An ignored resource' do
     context "that is local" do
 

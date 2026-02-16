@@ -162,6 +162,126 @@ describe 'S3Sync CloudFront Integration' do
     end
   end
 
+  describe 'orphan file discovery (scan_build_dir)' do
+    let(:build_dir) { Dir.mktmpdir }
+    
+    after do
+      FileUtils.remove_entry(build_dir) if File.directory?(build_dir)
+    end
+
+    before do
+      # Reset state
+      Middleman::S3Sync.instance_variable_set(:@s3_sync_resources, {})
+      Middleman::S3Sync.instance_variable_set(:@bucket_files, {})
+      
+      allow(Middleman::S3Sync).to receive(:say_status)
+      allow(Middleman::S3Sync).to receive(:build_dir).and_return(build_dir)
+      allow(Middleman::S3Sync).to receive(:remote_resource_for_path).and_return(nil)
+    end
+
+    context 'when scan_build_dir is enabled' do
+      let(:s3_sync_options) do
+        double(
+          scan_build_dir: true,
+          build_dir: build_dir,
+          bucket: 'test-bucket',
+          prefix: nil,
+          delete: false,
+          verbose: false,
+          ignore_paths: [],
+          prefer_gzip: false,
+          force: false,
+          acl: 'public-read'
+        )
+      end
+
+      it 'discovers files not in sitemap' do
+        # Create orphan files in build directory
+        FileUtils.mkdir_p(File.join(build_dir, 'images'))
+        File.write(File.join(build_dir, 'orphan.txt'), 'orphan content')
+        File.write(File.join(build_dir, 'images', 'optimized.webp'), 'image data')
+        
+        # Mock Resource creation to avoid S3 calls
+        allow(Middleman::S3Sync::Resource).to receive(:new) do |resource, remote, path: nil|
+          mock_resource = double('resource', status: :new, path: path)
+          allow(mock_resource).to receive(:tap).and_yield(mock_resource).and_return(mock_resource)
+          mock_resource
+        end
+        
+        Middleman::S3Sync.send(:discover_orphan_files)
+        
+        resources = Middleman::S3Sync.send(:s3_sync_resources)
+        expect(resources.keys).to include('orphan.txt')
+        expect(resources.keys).to include('images/optimized.webp')
+      end
+
+      it 'skips files already in sitemap' do
+        File.write(File.join(build_dir, 'existing.html'), 'content')
+        
+        # Pre-populate sitemap resource
+        Middleman::S3Sync.send(:s3_sync_resources)['existing.html'] = double('resource')
+        
+        # Count how many times Resource.new is called
+        call_count = 0
+        allow(Middleman::S3Sync::Resource).to receive(:new) do |resource, remote, path: nil|
+          call_count += 1
+          mock_resource = double('resource', status: :new, path: path)
+          allow(mock_resource).to receive(:tap).and_yield(mock_resource).and_return(mock_resource)
+          mock_resource
+        end
+        
+        Middleman::S3Sync.send(:discover_orphan_files)
+        
+        # Should not have created a new resource for existing.html
+        expect(call_count).to eq(0)
+      end
+
+      it 'skips directories' do
+        FileUtils.mkdir_p(File.join(build_dir, 'subdir', 'nested'))
+        File.write(File.join(build_dir, 'subdir', 'file.txt'), 'content')
+        
+        created_paths = []
+        allow(Middleman::S3Sync::Resource).to receive(:new) do |resource, remote, path: nil|
+          created_paths << path
+          mock_resource = double('resource', status: :new, path: path)
+          allow(mock_resource).to receive(:tap).and_yield(mock_resource).and_return(mock_resource)
+          mock_resource
+        end
+        
+        Middleman::S3Sync.send(:discover_orphan_files)
+        
+        expect(created_paths).to include('subdir/file.txt')
+        expect(created_paths).not_to include('subdir')
+        expect(created_paths).not_to include('subdir/nested')
+      end
+    end
+
+    context 'when scan_build_dir is disabled' do
+      let(:s3_sync_options) do
+        double(
+          scan_build_dir: false,
+          build_dir: build_dir,
+          bucket: 'test-bucket'
+        )
+      end
+
+      it 'does not scan for orphan files' do
+        File.write(File.join(build_dir, 'orphan.txt'), 'content')
+        
+        expect(Middleman::S3Sync).not_to receive(:discover_orphan_files)
+        
+        # Call work_to_be_done? but mock the heavy parts
+        allow(Middleman::S3Sync).to receive(:mm_resources).and_return([])
+        allow(Middleman::S3Sync).to receive(:remote_only_paths).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_create).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_update).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([])
+        
+        Middleman::S3Sync.send(:work_to_be_done?)
+      end
+    end
+  end
+
   describe 'batch delete operations' do
     let(:bucket) { double('bucket') }
     let(:resource1) { double('resource1', path: 'file1.html', remote_path: 'file1.html') }

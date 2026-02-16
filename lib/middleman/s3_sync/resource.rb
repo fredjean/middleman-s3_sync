@@ -6,9 +6,11 @@ module Middleman
 
       include Status
 
-      def initialize(resource, partial_s3_resource)
+      def initialize(resource, partial_s3_resource, path: nil)
         @resource = resource
-        @path = if resource
+        @path = if path
+                  path.sub(/^\//, '')
+                elsif resource
                   resource.destination_path.sub(/^\//, '')
                 elsif partial_s3_resource&.key
                   partial_s3_resource.key.sub(/^\//, '')
@@ -224,7 +226,8 @@ module Middleman
       end
 
       def local?
-        File.exist?(local_path) && resource
+        # For orphan files (scan_build_dir), resource is nil but file exists
+        File.exist?(local_path)
       end
 
       def remote?
