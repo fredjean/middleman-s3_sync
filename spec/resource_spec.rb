@@ -326,6 +326,68 @@ describe Middleman::S3Sync::Resource do
     end
   end
 
+  context 'redirect preservation' do
+    context 'remote-only redirect (no local file)' do
+      subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
+
+      let(:remote) do
+        double(
+          key: 'old-page.html',
+          metadata: {},
+          etag: '"abc123"',
+          content_encoding: nil,
+          cache_control: nil,
+          website_redirect_location: '/new-page.html'
+        )
+      end
+
+      before do
+        allow(File).to receive(:exist?).with('build/old-page.html').and_return(false)
+        resource.full_s3_resource = remote
+      end
+
+      it 'detects as a redirect' do
+        expect(resource.redirect?).to be true
+      end
+
+      its(:status) { is_expected.to eq :ignored }
+
+      it 'is not marked for deletion' do
+        expect(resource.to_delete?).to be false
+      end
+    end
+
+    context 'remote file without redirect (no local file)' do
+      subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
+
+      let(:remote) do
+        double(
+          key: 'deleted-page.html',
+          metadata: {},
+          etag: '"abc123"',
+          content_encoding: nil,
+          cache_control: nil,
+          website_redirect_location: nil
+        )
+      end
+
+      before do
+        allow(File).to receive(:exist?).with('build/deleted-page.html').and_return(false)
+        resource.full_s3_resource = remote
+      end
+
+      it 'is not a redirect' do
+        expect(resource.redirect?).to be_falsey
+      end
+
+      its(:status) { is_expected.to eq :deleted }
+
+      it 'is marked for deletion' do
+        expect(resource.to_delete?).to be true
+      end
+    end
+  end
+
   context 'An ignored resource' do
     context "that is local" do
 

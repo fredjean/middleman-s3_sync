@@ -235,8 +235,8 @@ module Middleman
       end
 
       def redirect?
-        (resource && resource.respond_to?(:redirect?) && resource.redirect?) || 
-          (full_s3_resource && full_s3_resource.respond_to?(:website_redirect_location) && full_s3_resource.website_redirect_location)
+        !!(resource && resource.respond_to?(:redirect?) && resource.redirect?) || 
+          !!(full_s3_resource && full_s3_resource.respond_to?(:website_redirect_location) && full_s3_resource.website_redirect_location)
       end
 
       def metadata_match?
