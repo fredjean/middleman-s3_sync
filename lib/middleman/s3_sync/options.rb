@@ -26,6 +26,8 @@ module Middleman
         :ignore_paths,
         :index_document,
         :error_document,
+        :routing_rules,
+        :scan_build_dir,
         :cloudfront_distribution_id,
         :cloudfront_invalidate,
         :cloudfront_invalidate_all,
@@ -111,6 +113,14 @@ module Middleman
 
       def version_bucket
         @version_bucket.nil? ? false : @version_bucket
+      end
+
+      def routing_rules
+        @routing_rules || []
+      end
+
+      def scan_build_dir
+        @scan_build_dir.nil? ? false : @scan_build_dir
       end
 
     end

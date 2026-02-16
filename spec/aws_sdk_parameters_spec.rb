@@ -87,6 +87,60 @@ describe 'AWS SDK Parameter Validation' do
         }.to raise_error('S3 requires `index_document` if `error_document` is specified')
       end
     end
+
+    context 'when routing_rules are set' do
+      before do
+        options.routing_rules = [
+          {
+            condition: { key_prefix_equals: 'docs/' },
+            redirect: { replace_key_prefix_with: 'documents/' }
+          },
+          {
+            condition: { http_error_code_returned_equals: '404' },
+            redirect: { host_name: 'example.com', replace_key_with: 'error.html' }
+          }
+        ]
+      end
+
+      it 'includes routing_rules in website configuration' do
+        expect(s3_client).to receive(:put_bucket_website) do |params|
+          expect(params[:website_configuration]).to have_key(:routing_rules)
+          rules = params[:website_configuration][:routing_rules]
+          expect(rules).to be_an(Array)
+          expect(rules.length).to eq(2)
+          
+          # First rule
+          expect(rules[0][:condition][:key_prefix_equals]).to eq('docs/')
+          expect(rules[0][:redirect][:replace_key_prefix_with]).to eq('documents/')
+          
+          # Second rule
+          expect(rules[1][:condition][:http_error_code_returned_equals]).to eq('404')
+          expect(rules[1][:redirect][:host_name]).to eq('example.com')
+          expect(rules[1][:redirect][:replace_key_with]).to eq('error.html')
+        end
+
+        Middleman::S3Sync.send(:update_bucket_website)
+      end
+    end
+
+    context 'when routing_rules are set without index_document' do
+      before do
+        options.index_document = nil
+        options.error_document = nil
+        options.routing_rules = [
+          {
+            condition: { key_prefix_equals: 'old/' },
+            redirect: { replace_key_prefix_with: 'new/' }
+          }
+        ]
+      end
+
+      it 'raises an error because S3 requires index_document if routing_rules are specified' do
+        expect {
+          Middleman::S3Sync.send(:update_bucket_website)
+        }.to raise_error('S3 requires `index_document` if `routing_rules` are specified')
+      end
+    end
   end
 
   describe 'put_bucket_versioning parameters' do

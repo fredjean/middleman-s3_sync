@@ -26,6 +26,7 @@ module Middleman
     option :dry_run, false, 'Whether to perform a dry-run'
     option :index_document, nil, 'S3 custom index document path'
     option :error_document, nil, 'S3 custom error document path'
+    option :routing_rules, [], 'S3 website routing rules (array of rule hashes)'
     option :content_types, {}, 'Custom content types'
     option :ignore_paths, [], 'Paths that should be ignored during sync, strings or regex are allowed'
     option :scan_build_dir, false, 'Scan build directory for files not in sitemap (e.g., after_build files)'

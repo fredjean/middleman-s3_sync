@@ -122,8 +122,39 @@ module Middleman
         opts[:index_document] = { suffix: s3_sync_options.index_document } if s3_sync_options.index_document
         opts[:error_document] = { key: s3_sync_options.error_document } if s3_sync_options.error_document
 
+        # Add routing rules if specified
+        if s3_sync_options.routing_rules && !s3_sync_options.routing_rules.empty?
+          opts[:routing_rules] = s3_sync_options.routing_rules.map do |rule|
+            routing_rule = {}
+            
+            # Handle condition (optional)
+            if rule[:condition] || rule['condition']
+              condition = rule[:condition] || rule['condition']
+              routing_rule[:condition] = {}
+              routing_rule[:condition][:key_prefix_equals] = condition[:key_prefix_equals] || condition['key_prefix_equals'] if condition[:key_prefix_equals] || condition['key_prefix_equals']
+              routing_rule[:condition][:http_error_code_returned_equals] = condition[:http_error_code_returned_equals] || condition['http_error_code_returned_equals'] if condition[:http_error_code_returned_equals] || condition['http_error_code_returned_equals']
+            end
+            
+            # Handle redirect (required)
+            redirect = rule[:redirect] || rule['redirect']
+            routing_rule[:redirect] = {}
+            routing_rule[:redirect][:host_name] = redirect[:host_name] || redirect['host_name'] if redirect[:host_name] || redirect['host_name']
+            routing_rule[:redirect][:http_redirect_code] = redirect[:http_redirect_code] || redirect['http_redirect_code'] if redirect[:http_redirect_code] || redirect['http_redirect_code']
+            routing_rule[:redirect][:protocol] = redirect[:protocol] || redirect['protocol'] if redirect[:protocol] || redirect['protocol']
+            routing_rule[:redirect][:replace_key_prefix_with] = redirect[:replace_key_prefix_with] || redirect['replace_key_prefix_with'] if redirect[:replace_key_prefix_with] || redirect['replace_key_prefix_with']
+            routing_rule[:redirect][:replace_key_with] = redirect[:replace_key_with] || redirect['replace_key_with'] if redirect[:replace_key_with] || redirect['replace_key_with']
+            
+            routing_rule
+          end
+        end
+
         if opts[:error_document] && !opts[:index_document]
           raise 'S3 requires `index_document` if `error_document` is specified'
+        end
+
+        # S3 requires index_document if routing_rules are specified
+        if opts[:routing_rules] && !opts[:index_document]
+          raise 'S3 requires `index_document` if `routing_rules` are specified'
         end
 
         unless opts.empty?
