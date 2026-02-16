@@ -19,7 +19,13 @@ that are no longer needed.
 * Use middleman-s3_sync version 4.x for Middleman 4.x
 * Use middleman-s3_sync version 3.x for Middleman 3.x
 
-## What's New in 4.6.5
+## What's New in 4.7.0
+
+**New Features**
+- `after_s3_sync` callback for post-sync hooks (notifications, custom actions)
+- `scan_build_dir` option to sync files outside the Middleman sitemap
+- `routing_rules` option for S3 website redirect configuration
+- Improved content type detection with mime-types gem fallback
 
 **Performance & Efficiency**
 - Batch deletes using S3 `delete_objects` (up to 1,000 keys per request)
@@ -31,9 +37,14 @@ that are no longer needed.
 **Reliability**
 - Thread-safe CloudFront invalidation path tracking (mutex-protected Set)
 - Cached CloudFront client to reduce re-instantiation overhead
+- Proper sitemap population before sync (`ensure_resource_list_updated!`)
+- Fixed redirect detection to return boolean values
 
 **Developer Experience**
 - Extension now properly delegates option writers (`verbose=`, `dry_run=`, etc.)
+- GitHub Actions CI and release workflows
+- Tightened gemspec with bounded dependency versions
+- Ruby >= 3.0 requirement
 
 ## Installation
 
