@@ -274,6 +274,57 @@ Your AWS credentials need CloudFront permissions in addition to S3:
 - Use `cloudfront_invalidate_all: true` for major updates to minimize costs (counts as 1 path)
 - Consider the trade-off between immediate cache invalidation and cost
 
+## Callbacks
+
+### after_s3_sync
+
+You can configure a callback that runs after the sync completes. This is useful for triggering notifications, updating external services, or running post-deployment tasks.
+
+```ruby
+activate :s3_sync do |s3_sync|
+  # ... other configuration ...
+  
+  # Using a lambda/proc
+  s3_sync.after_s3_sync = ->(results) {
+    puts "Created: #{results[:created]} files"
+    puts "Updated: #{results[:updated]} files"
+    puts "Deleted: #{results[:deleted]} files"
+    puts "Invalidation paths: #{results[:invalidation_paths].join(', ')}"
+  }
+end
+```
+
+The callback receives a hash with sync results:
+
+| Key                   | Type    | Description |
+| --------------------- | ------- | ----------- |
+| `:created`            | Integer | Number of files created |
+| `:updated`            | Integer | Number of files updated |
+| `:deleted`            | Integer | Number of files deleted |
+| `:invalidation_paths` | Array   | CloudFront paths that were invalidated |
+
+You can also use a symbol to call a method on the Middleman app:
+
+```ruby
+# In config.rb
+def notify_slack(results)
+  # Send deployment notification to Slack
+end
+
+activate :s3_sync do |s3_sync|
+  # ... other configuration ...
+  s3_sync.after_s3_sync = :notify_slack
+end
+```
+
+Callbacks that take no arguments are also supported:
+
+```ruby
+activate :s3_sync do |s3_sync|
+  s3_sync.after_s3_sync = -> { puts "Sync complete!" }
+end
+```
+
 #### IAM Policy
 
 Here's a sample IAM policy with least-privilege permissions that will allow syncing to a bucket named "mysite.com":

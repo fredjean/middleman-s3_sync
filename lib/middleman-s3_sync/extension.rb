@@ -37,6 +37,7 @@ module Middleman
     option :cloudfront_invalidation_max_retries, 5, 'Maximum number of retries for rate-limited invalidation requests'
     option :cloudfront_invalidation_batch_delay, 2, 'Delay in seconds between invalidation batches'
     option :cloudfront_wait, false, 'Whether to wait for CloudFront invalidation to complete'
+    option :after_s3_sync, nil, 'Proc/lambda to call after sync completes (receives changed_paths array)'
 
     expose_to_config :s3_sync_options, :default_caching_policy, :caching_policy
 

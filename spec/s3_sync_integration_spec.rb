@@ -15,7 +15,8 @@ describe 'S3Sync CloudFront Integration' do
       dry_run: false,
       verbose: false,
       delete: true,
-      bucket: 'test-bucket'
+      bucket: 'test-bucket',
+      after_s3_sync: nil
     )
   end
 
@@ -79,7 +80,8 @@ describe 'S3Sync CloudFront Integration' do
           cloudfront_invalidate: true,
           cloudfront_distribution_id: 'E1234567890123',
           cloudfront_invalidate_all: true,
-          bucket: 'test-bucket'
+          bucket: 'test-bucket',
+          after_s3_sync: nil
         )
       end
 
@@ -98,7 +100,8 @@ describe 'S3Sync CloudFront Integration' do
       let(:s3_sync_options) do
         double(
           cloudfront_invalidate: false,
-          bucket: 'test-bucket'
+          bucket: 'test-bucket',
+          after_s3_sync: nil
         )
       end
 
@@ -191,7 +194,8 @@ describe 'S3Sync CloudFront Integration' do
           ignore_paths: [],
           prefer_gzip: false,
           force: false,
-          acl: 'public-read'
+          acl: 'public-read',
+          after_s3_sync: nil
         )
       end
 
@@ -261,7 +265,8 @@ describe 'S3Sync CloudFront Integration' do
         double(
           scan_build_dir: false,
           build_dir: build_dir,
-          bucket: 'test-bucket'
+          bucket: 'test-bucket',
+          after_s3_sync: nil
         )
       end
 
@@ -328,7 +333,8 @@ describe 'S3Sync CloudFront Integration' do
       dry_run_options = double(
         dry_run: true,
         delete: true,
-        bucket: 'test-bucket'
+        bucket: 'test-bucket',
+        after_s3_sync: nil
       )
       allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(dry_run_options)
       allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([resource1])
@@ -344,6 +350,138 @@ describe 'S3Sync CloudFront Integration' do
       expect(bucket).not_to receive(:delete_objects)
 
       Middleman::S3Sync.send(:delete_resources)
+    end
+  end
+
+  describe 'after_s3_sync callback' do
+    before do
+      Middleman::S3Sync.instance_variable_set(:@app, nil)
+      
+      sitemap = double('sitemap')
+      allow(sitemap).to receive(:ensure_resource_list_updated!)
+      allow(app).to receive(:respond_to?).with(:sitemap).and_return(true)
+      allow(app).to receive(:sitemap).and_return(sitemap)
+      
+      allow(::Middleman::Application).to receive(:new).and_return(app)
+      allow(Middleman::S3Sync).to receive(:say_status)
+      allow(Middleman::S3Sync).to receive(:work_to_be_done?).and_return(true)
+      allow(Middleman::S3Sync).to receive(:update_bucket_versioning)
+      allow(Middleman::S3Sync).to receive(:update_bucket_website)
+      allow(Middleman::S3Sync).to receive(:ignore_resources)
+      allow(Middleman::S3Sync).to receive(:create_resources)
+      allow(Middleman::S3Sync).to receive(:update_resources)
+      allow(Middleman::S3Sync).to receive(:delete_resources)
+      allow(Middleman::S3Sync::CloudFront).to receive(:invalidate)
+    end
+
+    context 'when after_s3_sync callback is provided' do
+      it 'executes the callback after sync completes' do
+        callback_executed = false
+        callback_options = double(
+          cloudfront_invalidate: false,
+          bucket: 'test-bucket',
+          after_s3_sync: -> { callback_executed = true }
+        )
+        allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(callback_options)
+        allow(Middleman::S3Sync).to receive(:files_to_create).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_update).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([])
+
+        Middleman::S3Sync.sync
+
+        expect(callback_executed).to be true
+      end
+
+      it 'passes sync results to the callback' do
+        received_results = nil
+        callback_options = double(
+          cloudfront_invalidate: false,
+          bucket: 'test-bucket',
+          after_s3_sync: ->(results) { received_results = results }
+        )
+        allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(callback_options)
+        allow(Middleman::S3Sync).to receive(:files_to_create).and_return(['file1.html'])
+        allow(Middleman::S3Sync).to receive(:files_to_update).and_return(['file2.html', 'file3.html'])
+        allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([])
+
+        Middleman::S3Sync.sync
+
+        expect(received_results).to be_a(Hash)
+        expect(received_results[:created]).to eq(1)
+        expect(received_results[:updated]).to eq(2)
+        expect(received_results[:deleted]).to eq(0)
+      end
+
+      it 'logs callback execution status' do
+        callback_options = double(
+          cloudfront_invalidate: false,
+          bucket: 'test-bucket',
+          after_s3_sync: -> { 'done' }
+        )
+        allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(callback_options)
+        allow(Middleman::S3Sync).to receive(:files_to_create).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_update).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([])
+
+        expect(Middleman::S3Sync).to receive(:say_status).with('callback', /Running after_s3_sync/)
+        expect(Middleman::S3Sync).to receive(:say_status).with('callback', /after_s3_sync completed/)
+
+        Middleman::S3Sync.sync
+      end
+
+      it 'handles callback errors gracefully' do
+        error_callback_options = double(
+          cloudfront_invalidate: false,
+          bucket: 'test-bucket',
+          after_s3_sync: ->(_results) { raise 'Callback error!' }
+        )
+        allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(error_callback_options)
+        allow(Middleman::S3Sync).to receive(:files_to_create).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_update).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([])
+
+        expect(Middleman::S3Sync).to receive(:say_status).with('error', /Callback error!/)
+        expect { Middleman::S3Sync.sync }.not_to raise_error
+      end
+    end
+
+    context 'when after_s3_sync callback is nil' do
+      it 'does not attempt to execute a callback' do
+        nil_callback_options = double(
+          cloudfront_invalidate: false,
+          bucket: 'test-bucket',
+          after_s3_sync: nil
+        )
+        allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(nil_callback_options)
+
+        # Should not log callback execution
+        expect(Middleman::S3Sync).not_to receive(:say_status).with('callback', anything)
+
+        Middleman::S3Sync.sync
+      end
+    end
+
+    context 'when after_s3_sync callback is a method name' do
+      it 'executes the method on the app' do
+        method_executed = false
+        allow(app).to receive(:my_callback) { method_executed = true }
+        allow(app).to receive(:respond_to?).with(:my_callback).and_return(true)
+        allow(app).to receive(:method).with(:my_callback).and_return(double(arity: 0))
+        
+        method_callback_options = double(
+          cloudfront_invalidate: false,
+          bucket: 'test-bucket',
+          after_s3_sync: :my_callback
+        )
+        allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(method_callback_options)
+        allow(Middleman::S3Sync).to receive(:files_to_create).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_update).and_return([])
+        allow(Middleman::S3Sync).to receive(:files_to_delete).and_return([])
+
+        Middleman::S3Sync.sync
+
+        expect(method_executed).to be true
+      end
     end
   end
 end

@@ -70,6 +70,9 @@ module Middleman
         if s3_sync_options.cloudfront_invalidate
           CloudFront.invalidate(@invalidation_paths.to_a, s3_sync_options)
         end
+
+        # Run after_s3_sync callback if provided
+        run_after_s3_sync_callback
       end
 
       def bucket
@@ -105,6 +108,44 @@ module Middleman
 
       def content_types
         @content_types || {}
+      end
+
+      # Run the after_s3_sync callback if configured
+      def run_after_s3_sync_callback
+        callback = s3_sync_options.after_s3_sync
+        return unless callback
+
+        say_status 'callback', 'Running after_s3_sync callback...'
+        
+        # Build sync results hash
+        results = {
+          created: files_to_create.size,
+          updated: files_to_update.size,
+          deleted: files_to_delete.size,
+          invalidation_paths: @invalidation_paths.to_a
+        }
+
+        begin
+          if callback.respond_to?(:call)
+            # Lambda/Proc callback - check arity to decide whether to pass results
+            if callback.arity == 0 || callback.arity == -1 && callback.parameters.empty?
+              callback.call
+            else
+              callback.call(results)
+            end
+          elsif callback.is_a?(Symbol) && @app.respond_to?(callback)
+            # Symbol method name - call on app
+            if @app.method(callback).arity == 0
+              @app.send(callback)
+            else
+              @app.send(callback, results)
+            end
+          end
+          
+          say_status 'callback', 'after_s3_sync completed successfully'
+        rescue => e
+          say_status 'error', "after_s3_sync callback failed: #{e.message}"
+        end
       end
 
       protected

@@ -34,7 +34,8 @@ module Middleman
         :cloudfront_invalidation_batch_size,
         :cloudfront_invalidation_max_retries,
         :cloudfront_invalidation_batch_delay,
-        :cloudfront_wait
+        :cloudfront_wait,
+        :after_s3_sync
       ]
       attr_accessor *OPTIONS
 
