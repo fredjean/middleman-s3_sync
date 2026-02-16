@@ -182,6 +182,126 @@ describe Middleman::S3Sync::Resource do
     end
   end
 
+  context 'content type detection' do
+    context 'when mm_resource provides content_type' do
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, nil) }
+
+      let(:mm_resource) {
+        double(
+          destination_path: 'path/to/file.html',
+          content_type: 'text/html'
+        )
+      }
+
+      before do
+        allow(File).to receive(:exist?).with('build/path/to/file.html').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/file.html').and_return('content')
+      end
+
+      it 'uses the content_type from mm_resource' do
+        expect(resource.content_type).to eq 'text/html'
+      end
+    end
+
+    context 'when mm_resource is nil (orphan file)' do
+      subject(:resource) { Middleman::S3Sync::Resource.new(nil, remote) }
+
+      let(:remote) { mock_s3_object('path/to/file.webp') }
+
+      before do
+        resource.full_s3_resource = remote
+        allow(File).to receive(:exist?).with('build/path/to/file.webp').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/file.webp').and_return('content')
+      end
+
+      it 'falls back to mime-types for known extensions' do
+        expect(resource.content_type).to eq 'image/webp'
+      end
+    end
+
+    context 'when mm_resource has nil content_type' do
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, nil) }
+
+      let(:mm_resource) {
+        double(
+          destination_path: 'path/to/image.svg',
+          content_type: nil
+        )
+      }
+
+      before do
+        allow(File).to receive(:exist?).with('build/path/to/image.svg').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/image.svg').and_return('content')
+      end
+
+      it 'falls back to mime-types' do
+        expect(resource.content_type).to eq 'image/svg+xml'
+      end
+    end
+
+    context 'when content_types option is set' do
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, nil) }
+
+      let(:mm_resource) {
+        double(
+          destination_path: 'path/to/data.custom',
+          content_type: nil
+        )
+      }
+
+      before do
+        allow(File).to receive(:exist?).with('build/path/to/data.custom').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/data.custom').and_return('content')
+        options.content_types = { 'path/to/data.custom' => 'application/x-custom' }
+      end
+
+      it 'uses content_types option by path' do
+        expect(resource.content_type).to eq 'application/x-custom'
+      end
+    end
+
+    context 'when content_types option uses local_path key' do
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, nil) }
+
+      let(:mm_resource) {
+        double(
+          destination_path: 'path/to/data.custom',
+          content_type: nil
+        )
+      }
+
+      before do
+        allow(File).to receive(:exist?).with('build/path/to/data.custom').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/data.custom').and_return('content')
+        options.content_types = { 'build/path/to/data.custom' => 'application/x-custom-local' }
+      end
+
+      it 'uses content_types option by local_path' do
+        expect(resource.content_type).to eq 'application/x-custom-local'
+      end
+    end
+
+    context 'when extension is unknown' do
+      subject(:resource) { Middleman::S3Sync::Resource.new(mm_resource, nil) }
+
+      let(:mm_resource) {
+        double(
+          destination_path: 'path/to/file.unknownext123',
+          content_type: nil
+        )
+      }
+
+      before do
+        allow(File).to receive(:exist?).with('build/path/to/file.unknownext123').and_return(true)
+        allow(File).to receive(:read).with('build/path/to/file.unknownext123').and_return('content')
+      end
+
+      it 'defaults to application/octet-stream' do
+        expect(resource.content_type).to eq 'application/octet-stream'
+      end
+    end
+  end
+
   context 'An ignored resource' do
     context "that is local" do
 

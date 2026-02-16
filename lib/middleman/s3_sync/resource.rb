@@ -323,8 +323,24 @@ module Middleman
       end
 
       def content_type
-        @content_type ||= Middleman::S3Sync.content_types[local_path]
-        @content_type ||= !resource.nil? && resource.respond_to?(:content_type) ? resource.content_type : nil
+        @content_type ||= begin
+          # Priority: content_types option > mm_resource > mime-types > default
+          ct = options.content_types[local_path] if options.content_types
+          ct ||= options.content_types[path] if options.content_types
+          ct ||= Middleman::S3Sync.content_types[local_path]
+          ct ||= Middleman::S3Sync.content_types[path]
+          ct ||= resource.content_type if resource&.respond_to?(:content_type)
+          ct ||= detect_content_type_from_extension
+          ct || 'application/octet-stream'
+        end
+      end
+
+      def detect_content_type_from_extension
+        return nil unless defined?(MIME::Types)
+        extension = File.extname(original_path).delete_prefix('.')
+        return nil if extension.empty?
+        types = MIME::Types.type_for(extension)
+        types.first&.content_type
       end
 
       def caching_policy

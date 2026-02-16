@@ -1,5 +1,6 @@
 require 'aws-sdk-s3'
 require 'digest/md5'
+require 'mime/types'
 require 'middleman/s3_sync/version'
 require 'middleman/s3_sync/options'
 require 'middleman/s3_sync/caching_policy'
