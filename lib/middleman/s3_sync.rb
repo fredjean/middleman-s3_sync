@@ -38,6 +38,12 @@ module Middleman
         @app ||= ::Middleman::Application.new
         @invalidation_paths = Set.new
 
+        # Ensure sitemap is fully populated before syncing
+        # This catches resources from extensions activated in :build mode
+        if @app.respond_to?(:sitemap) && @app.sitemap.respond_to?(:ensure_resource_list_updated!)
+          @app.sitemap.ensure_resource_list_updated!
+        end
+
         say_status "Let's see if there's work to be done..."
         unless work_to_be_done?
           say_status "All S3 files are up to date."

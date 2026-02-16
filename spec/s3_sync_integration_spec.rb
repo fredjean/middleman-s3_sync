@@ -20,6 +20,15 @@ describe 'S3Sync CloudFront Integration' do
   end
 
   before do
+    # Reset cached app to avoid double leakage between tests
+    Middleman::S3Sync.instance_variable_set(:@app, nil)
+    
+    # Mock sitemap for ensure_resource_list_updated! call
+    sitemap = double('sitemap')
+    allow(sitemap).to receive(:ensure_resource_list_updated!)
+    allow(app).to receive(:respond_to?).with(:sitemap).and_return(true)
+    allow(app).to receive(:sitemap).and_return(sitemap)
+    
     allow(::Middleman::Application).to receive(:new).and_return(app)
     allow(Middleman::S3Sync).to receive(:s3_sync_options).and_return(s3_sync_options)
     allow(Middleman::S3Sync).to receive(:say_status)
@@ -98,6 +107,28 @@ describe 'S3Sync CloudFront Integration' do
 
         Middleman::S3Sync.sync
       end
+    end
+  end
+
+  describe 'sitemap population' do
+    it 'calls ensure_resource_list_updated! before processing resources' do
+      sitemap = double('sitemap')
+      expect(sitemap).to receive(:ensure_resource_list_updated!)
+      allow(sitemap).to receive(:respond_to?).with(:ensure_resource_list_updated!).and_return(true)
+      allow(app).to receive(:sitemap).and_return(sitemap)
+      
+      Middleman::S3Sync.sync
+    end
+    
+    it 'handles apps without sitemap gracefully' do
+      Middleman::S3Sync.instance_variable_set(:@app, nil)
+      
+      app_without_sitemap = double('app_without_sitemap')
+      allow(app_without_sitemap).to receive(:respond_to?).with(:sitemap).and_return(false)
+      allow(::Middleman::Application).to receive(:new).and_return(app_without_sitemap)
+      
+      # Should not raise an error
+      expect { Middleman::S3Sync.sync }.not_to raise_error
     end
   end
 

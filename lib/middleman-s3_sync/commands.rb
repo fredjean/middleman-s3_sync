@@ -102,7 +102,9 @@ module Middleman
         verbose = options[:verbose] ? 0 : 1
         instrument = options[:instrument]
 
-        mode = options[:build] ? :build : :config
+        # Always use :build mode to ensure build-time extensions are active
+        # (e.g., asset_hash in `configure :build` blocks)
+        mode = :build
 
         ::Middleman::S3Sync.app = ::Middleman::Application.new do
           config[:mode] = mode
