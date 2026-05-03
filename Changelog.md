@@ -20,6 +20,42 @@ The gem that tries really hard not to push files to S3.
   startup on the 3.1 CI matrix. The three test usages were replaced with plain
   `Time` literals.
 
+## v4.7.0
+- Add `after_s3_sync` callback hook that runs after sync completes (#138).
+  Accepts a lambda/proc — optionally receiving a results hash with `created`,
+  `updated`, `deleted` counts and invalidation paths — or a symbol referencing
+  a method on the Middleman app. Zero-arg callbacks work without modification
+  via arity detection. Callback failures are logged but do not abort the sync.
+- Add `scan_build_dir` option (default: `false`) to sync files in the build
+  directory that aren't in the Middleman sitemap (#108, #137). Useful for
+  output from `after_build` callbacks, image optimizers, or anything placed
+  in `build/` outside the sitemap.
+- Add `routing_rules` option to configure S3 website routing rules at sync
+  time, so deployments don't overwrite manually-configured rules (#142).
+  Supports `condition.key_prefix_equals`,
+  `condition.http_error_code_returned_equals`, and the
+  `redirect.{host_name, http_redirect_code, protocol, replace_key_prefix_with,
+  replace_key_with}` keys. Requires `index_document` to also be set.
+- Improve content type detection with a `mime-types` fallback for files
+  Middleman doesn't classify (e.g. orphan files, WebP, woff2). The
+  `content_types` option is now checked first, and unknown extensions default
+  to `application/octet-stream`. Bumped `mime-types` constraint to `~> 3.4`.
+  (#161)
+- Fix sitemap population for build-mode extensions (#116, #128). The sync
+  now calls `ensure_resource_list_updated!` so extensions like blog and
+  asset_hash populate the sitemap, and always runs in `:build` mode so
+  `configure :build` blocks are active. Files emitted by `after_build`
+  callbacks still aren't visible to the sitemap — use `scan_build_dir` for
+  those.
+- Fix `Resource#redirect?` to return `true`/`false` instead of a truthy URL
+  string (#143). The status logic was already correct; this just normalizes
+  the boolean contract.
+- Tighten gemspec dependency bounds and require Ruby `>= 3.0` (#167).
+  Pessimistic constraints on all runtime and development deps to resolve the
+  open-ended-dependency warnings on `gem build`.
+- Add GitHub Actions CI matrix (Ruby 3.1, 3.2, 3.3, 3.4) and an automated
+  RubyGems release workflow that publishes on `v*` tags (#169).
+
 ## v4.6.5
 - Performance and stability improvements
   - Thread-safe invalidation path tracking (use Set + mutex) when running in parallel
