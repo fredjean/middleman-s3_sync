@@ -15,6 +15,10 @@ The gem that tries really hard not to push files to S3.
   on `expires:` (without `max_age:`) continue to work unchanged.
 - Resource uploads no longer include empty `cache_control` or `expires` keys
   when the caching policy yields `nil` for them.
+- Drop `timerizer` development dependency. Its monkey-patch of `Time.new` was
+  incompatible with Ruby 3.1.7's keyword-argument changes and crashed RSpec at
+  startup on the 3.1 CI matrix. The three test usages were replaced with plain
+  `Time` literals.
 
 ## v4.6.5
 - Performance and stability improvements

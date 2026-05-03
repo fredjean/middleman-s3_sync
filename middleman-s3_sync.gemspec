@@ -39,6 +39,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rspec-support', '~> 3.12'
   gem.add_development_dependency 'rspec-its', '~> 2.0'
   gem.add_development_dependency 'rspec-mocks', '~> 3.12'
-  gem.add_development_dependency 'timerizer', '~> 0.3'
   gem.add_development_dependency 'webrick', '~> 1.8'
 end

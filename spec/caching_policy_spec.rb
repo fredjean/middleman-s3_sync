@@ -88,13 +88,14 @@ describe Middleman::S3Sync::BrowserCachePolicy do
     end
 
     context "set the expiration date" do
-      let(:options) { { expires: 1.years.from_now } }
+      let(:expires_at) { Time.utc(2030, 1, 1) }
+      let(:options) { { expires: expires_at } }
 
-      its(:expires) { is_expected.to eq CGI.rfc1123_date(1.year.from_now )}
+      its(:expires) { is_expected.to eq CGI.rfc1123_date(expires_at) }
     end
 
     context "max_age suppresses the Expires header" do
-      let(:options) { { max_age: 300, expires: 1.year.from_now } }
+      let(:options) { { max_age: 300, expires: Time.utc(2030, 1, 1) } }
 
       it "still emits max-age in cache_control" do
         expect(policy.to_s).to match /max-age=300/
