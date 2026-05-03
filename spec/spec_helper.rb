@@ -6,7 +6,6 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
 require 'middleman-s3_sync'
-require 'timerizer'
 require 'rspec/its'
 require 'rspec/support'
 require 'digest/md5'
