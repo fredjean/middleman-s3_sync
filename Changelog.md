@@ -2,6 +2,20 @@
 
 The gem that tries really hard not to push files to S3.
 
+## v4.8.0
+- Add `immutable` directive to caching policies. Pair with a long `max_age` on
+  fingerprinted assets (e.g. those produced by Middleman's `asset_hash`
+  extension) to tell browsers they never need to revalidate:
+  `caching_policy 'text/css', max_age: 1.year, public: true, immutable: true`.
+- Prefer `Cache-Control: max-age` over the `Expires` header. When a policy sets
+  `max_age:`, the `Expires` header is now suppressed even if `expires:` is also
+  set. Per RFC 7234 §5.3, `max-age` overrides `Expires` for HTTP/1.1 caches, so
+  emitting both adds no information and forces a metadata update on every build
+  as the `expires:` timestamp drifts forward. Existing configs that rely solely
+  on `expires:` (without `max_age:`) continue to work unchanged.
+- Resource uploads no longer include empty `cache_control` or `expires` keys
+  when the caching policy yields `nil` for them.
+
 ## v4.6.5
 - Performance and stability improvements
   - Thread-safe invalidation path tracking (use Set + mutex) when running in parallel

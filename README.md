@@ -546,6 +546,21 @@ The following keys can be set:
 | `no_store`         | boolean | `no-store`         | Instructs caches not to keep a copy of the representation under any conditions.                                                        |
 | `must_revalidate`  | boolean | `must-revalidate`  | Tells the caches that they must obey any freshness information you give them about a representation.                                   |
 | `proxy_revalidate` | boolean | `proxy-revalidate` | Similar as `must-revalidate`, but only for proxies.                                                                                    |
+| `immutable`        | boolean | `immutable`        | Tells browsers the response body will never change for this URL, so they should not revalidate even on a user-initiated reload. Pair with a long `max_age` for content-addressed (fingerprinted) assets. |
+
+#### Hashed Assets
+
+If you use Middleman's `asset_hash` extension, fingerprinted asset URLs
+are content-addressed and never need to be revalidated. Combining a
+long `max_age` with `immutable` is the strongest browser cache hint
+you can give:
+
+```ruby
+caching_policy 'text/css',               max_age: 1.year, public: true, immutable: true
+caching_policy 'application/javascript', max_age: 1.year, public: true, immutable: true
+caching_policy 'image/png',              max_age: 1.year, public: true, immutable: true
+caching_policy 'image/jpeg',             max_age: 1.year, public: true, immutable: true
+```
 
 #### Setting `Expires` Header
 
@@ -554,8 +569,11 @@ You can pass the `expires` key to the `caching_policy` and
 header on a results. You will need to pass it a Time object indicating
 when the resource is set to expire.
 
-> Note that the `Cache-Control` header will take precedence over the
-> `Expires` header if both are present.
+> Note that the `Cache-Control` header takes precedence over `Expires`
+> for HTTP/1.1 caches (RFC 7234 §5.3). For that reason, when a policy
+> sets `max_age:`, the `Expires` header is suppressed entirely — even
+> if `expires:` is also set. This avoids redundant metadata churn from
+> the `expires:` timestamp drifting forward on every build.
 
 #### A Note About Browser Caching
 
