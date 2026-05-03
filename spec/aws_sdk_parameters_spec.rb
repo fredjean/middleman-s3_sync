@@ -479,6 +479,48 @@ describe 'AWS SDK Parameter Validation' do
       end
     end
 
+    context 'when a caching policy with only max_age is in effect' do
+      before do
+        policy = Middleman::S3Sync::BrowserCachePolicy.new(max_age: 31536000, public: true, immutable: true)
+        allow(Middleman::S3Sync).to receive(:caching_policy_for).and_return(policy)
+      end
+
+      it 'sets cache_control but omits expires' do
+        attributes = resource.to_h
+
+        expect(attributes[:cache_control]).to eq('max-age=31536000, public, immutable')
+        expect(attributes).not_to have_key(:expires)
+      end
+    end
+
+    context 'when a caching policy with only expires is in effect' do
+      before do
+        policy = Middleman::S3Sync::BrowserCachePolicy.new(expires: Time.utc(2030, 1, 1))
+        allow(Middleman::S3Sync).to receive(:caching_policy_for).and_return(policy)
+      end
+
+      it 'sets expires but omits cache_control' do
+        attributes = resource.to_h
+
+        expect(attributes[:expires]).to eq(CGI.rfc1123_date(Time.utc(2030, 1, 1)))
+        expect(attributes).not_to have_key(:cache_control)
+      end
+    end
+
+    context 'when a caching policy sets both max_age and expires' do
+      before do
+        policy = Middleman::S3Sync::BrowserCachePolicy.new(max_age: 300, expires: Time.utc(2030, 1, 1))
+        allow(Middleman::S3Sync).to receive(:caching_policy_for).and_return(policy)
+      end
+
+      it 'emits cache_control and suppresses the redundant expires' do
+        attributes = resource.to_h
+
+        expect(attributes[:cache_control]).to eq('max-age=300')
+        expect(attributes).not_to have_key(:expires)
+      end
+    end
+
     context 'when resource has a redirect' do
       let(:mm_resource) do
         double(

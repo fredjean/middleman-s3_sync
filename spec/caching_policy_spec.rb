@@ -17,6 +17,7 @@ describe Middleman::S3Sync::BrowserCachePolicy do
       expect(policy.to_s).to_not match /no-store/
       expect(policy.to_s).to_not match /must-revalidate/
       expect(policy.to_s).to_not match /proxy-revalidate/
+      expect(policy.to_s).to_not match /immutable/
       expect(policy.expires).to eq nil
     end
 
@@ -62,6 +63,19 @@ describe Middleman::S3Sync::BrowserCachePolicy do
       its(:to_s) { is_expected.to match /proxy-revalidate/ }
     end
 
+    context "setting the immutable flag" do
+      let(:options) { { immutable: true } }
+      its(:to_s) { is_expected.to match /immutable/ }
+    end
+
+    context "combining max_age, public, and immutable for hashed assets" do
+      let(:options) { { max_age: 31536000, public: true, immutable: true } }
+
+      it "emits the directives in policy order" do
+        expect(policy.to_s).to eq "max-age=31536000, public, immutable"
+      end
+    end
+
     context "divide caching policiies with a comma and a space" do
       let(:options) { { :max_age => 300, :public => true } }
 
@@ -77,6 +91,16 @@ describe Middleman::S3Sync::BrowserCachePolicy do
       let(:options) { { expires: 1.years.from_now } }
 
       its(:expires) { is_expected.to eq CGI.rfc1123_date(1.year.from_now )}
+    end
+
+    context "max_age suppresses the Expires header" do
+      let(:options) { { max_age: 300, expires: 1.year.from_now } }
+
+      it "still emits max-age in cache_control" do
+        expect(policy.to_s).to match /max-age=300/
+      end
+
+      its(:expires) { is_expected.to be_nil }
     end
   end
 end

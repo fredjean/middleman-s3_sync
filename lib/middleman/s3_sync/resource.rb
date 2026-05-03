@@ -64,8 +64,8 @@ module Middleman
         attributes[:acl] = options.acl if options.acl_enabled?
 
         if caching_policy
-          attributes[:cache_control] = caching_policy.cache_control
-          attributes[:expires] = caching_policy.expires
+          attributes[:cache_control] = caching_policy.cache_control if caching_policy.cache_control
+          attributes[:expires] = caching_policy.expires if caching_policy.expires
         end
 
         if options.prefer_gzip && gzipped
@@ -382,8 +382,8 @@ module Middleman
 
         # Add cache control and expires if present
         if caching_policy
-          upload_options[:cache_control] = caching_policy.cache_control
-          upload_options[:expires] = caching_policy.expires
+          upload_options[:cache_control] = caching_policy.cache_control if caching_policy.cache_control
+          upload_options[:expires] = caching_policy.expires if caching_policy.expires
         end
 
         # Add storage class if needed

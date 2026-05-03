@@ -38,6 +38,7 @@ module Middleman
         policy << "no-store" if policies.fetch(:no_store, false)
         policy << "must-revalidate" if policies.fetch(:must_revalidate, false)
         policy << "proxy-revalidate" if policies.fetch(:proxy_revalidate, false)
+        policy << "immutable" if policies.fetch(:immutable, false)
         if policy.empty?
           nil
         else
@@ -49,7 +50,12 @@ module Middleman
         cache_control
       end
 
+      # Returns an RFC 1123 date for the Expires header.
+      # When :max_age is set we suppress Expires entirely: per RFC 7234 §5.3
+      # max-age takes precedence over Expires for HTTP/1.1 caches, so emitting
+      # both adds no information and forces a metadata update on every build.
       def expires
+        return nil if policies.has_key?(:max_age)
         if expiration = policies.fetch(:expires, nil)
           CGI.rfc1123_date(expiration)
         end
